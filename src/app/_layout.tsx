@@ -4,7 +4,7 @@ import { Stack, router } from "expo-router";
 import * as Linking from 'expo-linking';
 import * as SecureStore from 'expo-secure-store';
 
-import '../styles/global.css';
+import '../../styles/global.css';
 
 function RootLayout() {
   useEffect(() => {

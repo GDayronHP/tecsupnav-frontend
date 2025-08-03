@@ -4,8 +4,8 @@ import * as WebBrowser from 'expo-web-browser';
 import * as Linking from 'expo-linking';
 import * as SecureStore from 'expo-secure-store';
 
-import logo from '../../assets/logo.png';
-import googleIcon from '../../assets/google-icon.svg';
+import logo from '../../../assets/icons/logo.png';
+import googleIcon from '../../../assets/icons/google-icon.png';
 
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
