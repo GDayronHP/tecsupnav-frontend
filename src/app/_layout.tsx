@@ -13,13 +13,12 @@ function RootLayout() {
       const token = parsed.queryParams?.token;
       if (typeof token === 'string') {
         SecureStore.setItemAsync('token', token);
-        router.push('/home/index');
+        router.push('home');
       }
     };
 
     const subscription = Linking.addEventListener('url', handleUrl);
 
-    // Caso cuando la app se abre desde un deep link cold start
     Linking.getInitialURL().then(url => {
       if (url) {
         handleUrl({ url });
@@ -32,22 +31,18 @@ function RootLayout() {
   return (
     <SafeAreaView style={{ flex: 1 }}>
       <Stack
-        initialRouteName="auth/index"
+        initialRouteName="auth"
         screenOptions={{
           headerShown: false,
           contentStyle: { backgroundColor: 'transparent' },
         }}
       >
         <Stack.Screen
-          name="auth/index"
+          name="auth"
           options={{
             headerShown: false,
             title: 'Inicio de sesión',
           }}
-        />
-        <Stack.Screen
-          name="home/index"
-          options={{ title: 'Página principal' }}
         />
       </Stack>
     </SafeAreaView>
