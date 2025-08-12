@@ -1,159 +1,235 @@
-import { Text, View, Pressable, Alert } from 'react-native';
-import { Image } from 'expo-image';
-import * as WebBrowser from 'expo-web-browser';
-import * as Linking from 'expo-linking';
-import * as SecureStore from 'expo-secure-store';
+import { Text, View, Pressable, Alert } from "react-native";
+import { Image } from "expo-image";
+import * as WebBrowser from "expo-web-browser";
+import * as SecureStore from "expo-secure-store";
+import * as Google from "expo-auth-session/providers/google";
 
-import logo from '@assets/icons/logo.png';
-import googleIcon from '@assets/icons/google-icon.png';
+import logo from "@assets/icons/logo.png";
+import googleIcon from "@assets/icons/google-icon.png";
 
-import { LinearGradient } from 'expo-linear-gradient';
-import { router } from 'expo-router';
+import { LinearGradient } from "expo-linear-gradient";
 
-import { useEffect } from 'react';
+import { useEffect, useState, useCallback } from "react";
+
+import { useRouter } from 'expo-router';
+
+import Constants from 'expo-constants';
 
 WebBrowser.maybeCompleteAuthSession();
 
+const API_BASE_URL = Constants.expoConfig?.extra?.apiBaseUrl;
+const ANDROID_CLIENT_ID = Constants.expoConfig?.extra?.androidClientId;
+
+
 export default function AuthScreen() {
-  // // Crea la URL de callback correcta
-  // const redirectUri = Linking.createURL('auth/callback');
+  const [isLoading, setIsLoading] = useState(false);
+  
+  const router = useRouter();
+  
+  const [request, response, promptAsync] = Google.useAuthRequest({
+    androidClientId: ANDROID_CLIENT_ID,
+  });
 
-  // console.log('Redirect URI:', redirectUri); // Para debugging
+  const getUserInfo = async (accessToken) => {
+    try {
+      const response = await fetch(
+        `https://www.googleapis.com/oauth2/v2/userinfo?access_token=${accessToken}`
+      );
+      
+      if (!response.ok) {
+        throw new Error('Error obteniendo información del usuario');
+      }
+      
+      return await response.json();
+    } catch (error) {
+      console.error('Error obteniendo info del usuario:', error);
+      throw error;
+    }
+  };
 
-  // const handleLogin = async () => {
-  //   try {
-  //     // Construye la URL de autenticación con el redirect URI
-  //     const authUrl = `https://horses-tip-rob-wishing.trycloudflare.com/auth/google?redirect=${encodeURIComponent(redirectUri)}`;
+  const authenticateWithBackend = async (googleToken, userInfo) => {
+    try {
+      console.log('🚀 Enviando datos a backend...');
+      console.log('User info:', userInfo);
+      
+      const response = await fetch(`${API_BASE_URL}/api/auth/google/mobile`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          googleToken: googleToken,
+          email: userInfo.email,
+          firstName: userInfo.given_name || userInfo.name?.split(' ')[0] || '',
+          lastName: userInfo.family_name || userInfo.name?.split(' ').slice(1).join(' ') || '',
+          avatar: userInfo.picture,
+        }),
+      });
 
-  //     console.log('Auth URL:', authUrl); // Para debugging
+      const result = await response.json();
+      
+      if (!response.ok || !result.success) {
+        throw new Error(result.message || 'Error en la autenticación');
+      }
 
-  //     const result = await WebBrowser.openAuthSessionAsync(authUrl, redirectUri);
+      console.log('✅ Autenticación backend exitosa:', result);
+      return result.data;
+    } catch (error) {
+      console.error('❌ Error en autenticación backend:', error);
+      throw error;
+    }
+  };
 
-  //     console.log('WebBrowser result:', result); // Para debugging
+  const navigateToHome = useCallback(() => {
+    try {
+      router.replace('/(tabs)/home');
+    } catch (error) {
+      console.error('Error al navegar:', error);
+    }
+  }, [router]);
 
-  //     if (result.type === 'success' && result.url) {
-  //       await handleAuthResult(result.url);
-  //     } else if (result.type === 'cancel') {
-  //       console.log('Usuario canceló la autenticación');
-  //     } else {
-  //       console.log('Error en WebBrowser:', result);
-  //       Alert.alert('Error', 'Inicio de sesión fallido');
-  //     }
-  //   } catch (error) {
-  //     console.error('Error en handleLogin:', error);
-  //     Alert.alert('Error', 'Ocurrió un error durante el inicio de sesión');
-  //   }
-  // };
+  useEffect(() => {
+    const handleGoogleResponse = async () => {
+      if (response?.type === 'success') {
+        setIsLoading(true);
+        
+        try {
+          const { authentication } = response;
+          
+          if (authentication?.accessToken) {
+            console.log('✅ Google access token recibido');
+            
+            const userInfo = await getUserInfo(authentication.accessToken);
+            console.log('✅ Info del usuario obtenida:', userInfo);
+            
+            if (!userInfo.email?.endsWith('@tecsup.edu.pe')) {
+              Alert.alert(
+                'Error de acceso',
+                'Solo se permiten correos institucionales (@tecsup.edu.pe)',
+                [{ text: 'OK' }]
+              );
+              setIsLoading(false);
+              return;
+            }
 
-  // const handleAuthResult = async (url) => {
-  //   try {
-  //     console.log('Processing auth result URL:', url);
+            const backendResponse = await authenticateWithBackend(
+              authentication.accessToken,
+              userInfo
+            );
+            
+            await SecureStore.setItemAsync('access_token', backendResponse.access_token);
+            await SecureStore.setItemAsync('user_info', JSON.stringify(backendResponse.user));
+            
+            await SecureStore.setItemAsync('google_token', authentication.accessToken);
+            
+            console.log('✅ Datos guardados en SecureStore');
+            console.log('🚀 Redirigiendo a home...');
+            
+            setTimeout(() => {
+              navigateToHome();
+            }, 100);
+            
+          } else {
+            throw new Error('No se recibió access token de Google');
+          }
+        } catch (error) {
+          console.error('❌ Error en proceso de autenticación:', error);
+          
+          let errorMessage = 'Error desconocido en la autenticación';
+          
+          if (error.message.includes('correos institucionales')) {
+            errorMessage = 'Solo se permiten correos institucionales (@tecsup.edu.pe)';
+          } else if (error.message.includes('Token de Google inválido')) {
+            errorMessage = 'Token de Google inválido';
+          } else if (error.message.includes('Error en la autenticación')) {
+            errorMessage = 'Error en el servidor de autenticación';
+          } else if (error.message.includes('Network')) {
+            errorMessage = 'Error de conexión. Verifica tu internet';
+          }
+          
+          Alert.alert('Error de autenticación', errorMessage);
+          setIsLoading(false);
+        }
+      } else if (response?.type === 'error') {
+        console.error('❌ Error en Google OAuth:', response.error);
+        Alert.alert('Error', 'No se pudo completar la autenticación con Google');
+        setIsLoading(false);
+      } else if (response?.type === 'cancel') {
+        console.log('🚫 Usuario canceló la autenticación');
+        setIsLoading(false);
+      }
+    };
 
-  //     const parsedUrl = new URL(url);
+    if (response) {
+      handleGoogleResponse();
+    }
+  }, [response, navigateToHome]);
 
-  //     const error = parsedUrl.searchParams.get('error');
-  //     const message = parsedUrl.searchParams.get('message');
-  //     const token = parsedUrl.searchParams.get('token');
-  //     const status = parsedUrl.searchParams.get('status');
+  const handleLoginPress = useCallback(async () => {
+    if (isLoading || !request) return;
+    
+    try {
+      setIsLoading(true);
+      console.log('🚀 Iniciando login con Google...');
+      
+      const result = await promptAsync();
 
-  //     console.log('URL params:', { error, message, token, status });
-
-  //     if (error) {
-  //       const errorMessage = message ? decodeURIComponent(message) : 'Error desconocido';
-  //       router.replace('/auth');
-  //       Alert.alert('Error de inicio de sesión', errorMessage);
-  //       return;
-  //     }
-
-  //     if (token) {
-  //       console.log('Token recibido, guardando...');
-  //       await SecureStore.setItemAsync('token', token);
-
-  //       // Pequeño delay para asegurar que el token se guarde
-  //       setTimeout(() => {
-  //         router.replace('/home');
-  //       }, 100);
-  //     } else {
-  //       console.error('No se recibió token ni error');
-  //       Alert.alert('Error', 'No se pudo completar la autenticación');
-  //     }
-  //   } catch (error) {
-  //     console.error('Error procesando resultado de auth:', error);
-  //     Alert.alert('Error', 'Error procesando la respuesta de autenticación');
-  //   }
-  // };
-
-  // useEffect(() => {
-  //   let subscription;
-
-  //   const setupDeepLinkListener = () => {
-  //     subscription = Linking.addEventListener('url', (event) => {
-  //       console.log('Deep link recibido:', event.url);
-
-  //       // Verifica si es una URL de callback de auth
-  //       if (event.url.includes('auth/callback')) {
-  //         handleAuthResult(event.url);
-  //       }
-  //     });
-  //   };
-
-  //   setupDeepLinkListener();
-
-  //   // Verifica si la app fue abierta con un deep link
-  //   Linking.getInitialURL().then((url) => {
-  //     if (url) {
-  //       console.log('Initial URL:', url);
-  //       if (url.includes('auth/callback')) {
-  //         handleAuthResult(url);
-  //       }
-  //     }
-  //   });
-
-  //   return () => {
-  //     if (subscription) {
-  //       subscription.remove();
-  //     }
-  //   };
-  // }, []);
-
-  // Por el momento solo sera una redirección al screen home
-  const handleLogin = () => {
-    // Redirige directamente al home
-    router.replace('home')
-  }
+      if (result.type === 'cancel') {
+        setIsLoading(false);
+      }
+      
+    } catch (error) {
+      console.error("❌ Error durante login con Google:", error);
+      Alert.alert("Error", "No se pudo iniciar sesión con Google");
+      setIsLoading(false);
+    }
+  }, [isLoading, request, promptAsync]);
 
   return (
     <LinearGradient
-      colors={['#e6f9ff', '#e6f9ff', 'white', 'white', '#b3f0ff']}
+      colors={["#e6f9ff", "#e6f9ff", "white", "white", "#b3f0ff"]}
       start={{ x: 0, y: 0 }}
       end={{ x: 1, y: 1 }}
       className="flex-1 w-full rounded-card shadow-card"
     >
       <View className="flex-1 px-6 items-center justify-center">
         <View className="bg-tecsup-card-bg rounded-card p-6 shadow-xl shadow-black/50">
-
           <View className="items-center mb-8">
-            <Image source={logo} contentFit="cover" width={80} height={80} />
-            <Text className="text-title text-tecsup-text-primary font-semibold">Acceder a TecsupNav</Text>
+            <View className="mb-3">
+              <Image source={logo} contentFit="cover" width={80} height={80}/>
+            </View>
+            <Text className="text-title text-tecsup-text-primary font-semibold">
+              Acceder a TecsupNav
+            </Text>
             <Text className="text-body text-tecsup-text-secondary mt-2 text-center">
               Inicia sesión con tu cuenta de Google institucional
             </Text>
           </View>
 
           <Pressable
-            className="flex-row items-center w-full border border-neutral-200 rounded-button active:scale-95 active:bg-neutral-100 py-4 px-4 mb-6"
-            onPress={handleLogin}
+            className={`flex-row items-center w-full border border-neutral-200 rounded-button py-4 px-4 mb-6 ${
+              isLoading || !request 
+                ? 'opacity-50' 
+                : ' active:bg-neutral-100'
+            }`}
+            disabled={isLoading || !request}
+            onPress={handleLoginPress}
           >
             <View className="pr-3">
-              <Image source={googleIcon} contentFit="cover" width={24} height={24} />
+              <Image
+                source={googleIcon}
+                contentFit="cover"
+                width={24}
+                height={24}
+              />
             </View>
             <View className="flex-1">
               <Text className="text-center text-label text-tecsup-text-primary font-medium">
-                Acceder con Google
+                {isLoading ? 'Autenticando...' : 'Acceder con Google'}
               </Text>
             </View>
           </Pressable>
-          
+
           <View className="bg-info-50 rounded-base p-4 mb-6">
             <View className="flex-row">
               <View className="w-2 h-2 bg-info-500 rounded-full mt-2 mr-3" />
@@ -162,11 +238,21 @@ export default function AuthScreen() {
                   Acceso Seguro
                 </Text>
                 <Text className="text-caption text-tecsup-text-secondary">
-                  Tu información está protegida con autenticación de Google y cifrado de extremo a extremo.
+                  Tu información está protegida con autenticación de Google y
+                  cifrado de extremo a extremo.
                 </Text>
               </View>
             </View>
           </View>
+
+          {/* Indicador de carga */}
+          {isLoading && (
+            <View className="bg-blue-50 rounded-base p-4">
+              <Text className="text-center text-caption text-blue-700">
+                Procesando autenticación...
+              </Text>
+            </View>
+          )}
         </View>
       </View>
     </LinearGradient>

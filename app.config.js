@@ -1,0 +1,60 @@
+import 'dotenv/config';
+
+export default
+  {
+    expo: {
+      name: "TecsupNav",
+      slug: "TecsupNav",
+      version: "1.0.0",
+      orientation: "portrait",
+      icon: "./assets/icons/icon.png",
+      userInterfaceStyle: "light",
+      newArchEnabled: true,
+      scheme: "tecsupnav",
+      platforms: ["ios", "android", "web"],
+      deepLinking: true,
+      splash: {
+        image: "./assets/icons/splash-icon.png",
+        resizeMode: "contain",
+        backgroundColor: "#ffffff"
+      },
+      ios: {
+        bundleIdentifier: "com.tecsup.tecsupnav",
+        supportsTablet: true
+      },
+      android: {
+        adaptiveIcon: {
+          foregroundImage: "./assets/icons/adaptive-icon.png",
+          backgroundColor: "#ffffff"
+        },
+        edgeToEdgeEnabled: true,
+        package: "com.tecsup.tecsupnav",
+        intentFilters: [
+          {
+            action: "VIEW",
+            data: [
+              {
+                scheme: "com.tecsup.tecsupnav"
+              },
+              {
+                scheme: "tecsupnav"
+              }
+            ],
+            category: ["BROWSABLE", "DEFAULT"]
+          }
+        ]
+      },
+      web: {
+        favicon: ""
+      },
+      plugins: ["expo-router", "expo-secure-store"],
+      extra: {
+        router: {},
+        eas: {
+          projectId: "ee593b5d-6f94-46ea-a58b-46daa5702247"
+        },
+        apiBaseUrl: process.env.API_BASE_URL,
+        androidClientId: process.env.ANDROID_CLIENT_ID
+      }
+    }
+  }

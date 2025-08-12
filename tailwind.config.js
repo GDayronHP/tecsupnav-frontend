@@ -2,7 +2,7 @@
 // tailwind.config.js
 module.exports = {
   content: [
-    "./src/**/*.{js,jsx,ts,tsx}", 
+    "./src/**/*.{js,jsx,ts,tsx}",
     "./components/**/*.{js,jsx,ts,tsx}",
     "./screens/**/*.{js,jsx,ts,tsx}"
   ],
@@ -21,6 +21,11 @@ module.exports = {
           800: '#007480',
           900: '#005c64',
         },
+
+        info: {
+          50: '#eff6ff',
+          500: '#3b82f6',
+        },
         
         secondary: {
           50: '#fff3e0',
@@ -36,16 +41,16 @@ module.exports = {
         },
 
         neutral: {
-          25: '#fcfcfd',   
-          50: '#f9fafb',   
-          100: '#f3f4f6',  
-          200: '#e5e7eb',  
-          300: '#d1d5db',  
-          400: '#9ca3af',  
-          500: '#6b7280',  
-          600: '#4b5563',  
-          700: '#374151', 
-          800: '#1f2937',  
+          25: '#fcfcfd',
+          50: '#f9fafb',
+          100: '#f3f4f6',
+          200: '#e5e7eb',
+          300: '#d1d5db',
+          400: '#9ca3af',
+          500: '#6b7280',
+          600: '#4b5563',
+          700: '#374151',
+          800: '#1f2937',
           900: '#111827',
         },
 
@@ -74,11 +79,11 @@ module.exports = {
           cyan: '#00bcd4',
           'cyan-light': '#4dd0e1',
           'cyan-dark': '#0097a7',
-          
+
           'card-bg': '#ffffff',
           'input-bg': '#f8fafc',
           'surface': '#f1f5f9',
-          
+
           'text-primary': '#1e293b',
           'text-secondary': '#64748b',
           'text-muted': '#94a3b8',
@@ -115,6 +120,7 @@ module.exports = {
         'button': '12px',
         'card': '16px',
         'input': '8px',
+        'base': '6px',
       },
 
       boxShadow: {

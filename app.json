@@ -1,36 +1,5 @@
 {
-  "expo": {
-    "name": "TecsupNav",
-    "slug": "TecsupNav",
-    "version": "1.0.0",
-    "orientation": "portrait",
-    "icon": "./assets/icons/icon.png",
-    "userInterfaceStyle": "light",
-    "newArchEnabled": true,
-    "scheme": "tecsupnav",
-    "platforms": ["ios", "android", "web"],
-    "deepLinking": true,
-    "splash": {
-      "image": "./assets/icons/splash-icon.png",
-      "resizeMode": "contain",
-      "backgroundColor": "#ffffff"
-    },
-    "ios": {
-      "supportsTablet": true
-    },
-    "android": {
-      "adaptiveIcon": {
-        "foregroundImage": "./assets/icons/adaptive-icon.png",
-        "backgroundColor": "#ffffff"
-      },
-      "edgeToEdgeEnabled": true
-    },
-    "web": {
-      "favicon": ""
-    },
-    "plugins": [
-      "expo-router",
-      "expo-secure-store"
-    ]
+  "android": {
+    "package": "com.josephhp.tecsupnav"
   }
 }
