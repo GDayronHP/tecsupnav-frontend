@@ -99,6 +99,41 @@ module.exports = {
           'laboratorio-text': '#3730a3',
           'servicio-bg': '#fef3c7',
           'servicio-text': '#92400e',
+        },
+
+        filter: {
+          'todos-bg': '#00bcd4',
+          'todos-text': '#ffffff',
+          'todos-border': '#00bcd4',
+          
+          'pabellon-bg': '#f0f9ff',
+          'pabellon-text': '#0369a1',
+          'pabellon-border': '#0ea5e9',
+          'pabellon-bg-active': '#0ea5e9',
+          'pabellon-text-active': '#ffffff',
+          
+          'aula-bg': '#fefce8',
+          'aula-text': '#a16207',
+          'aula-border': '#eab308',
+          'aula-bg-active': '#eab308',
+          'aula-text-active': '#ffffff',
+          
+          'laboratorio-bg': '#f3f4f6',
+          'laboratorio-text': '#374151',
+          'laboratorio-border': '#6b7280',
+          'laboratorio-bg-active': '#374151',
+          'laboratorio-text-active': '#ffffff',
+          
+          'servicio-bg': '#fdf4ff',
+          'servicio-text': '#86198f',
+          'servicio-border': '#c026d3',
+          'servicio-bg-active': '#c026d3',
+          'servicio-text-active': '#ffffff',
+          
+          // Estados inactivos generales
+          'inactive-bg': '#ffffff',
+          'inactive-text': '#64748b',
+          'inactive-border': '#d1d5db',
         }
       },
 
@@ -114,6 +149,7 @@ module.exports = {
         'body': ['16px', { lineHeight: '24px', fontWeight: '400' }],
         'caption': ['14px', { lineHeight: '20px', fontWeight: '400' }],
         'label': ['14px', { lineHeight: '20px', fontWeight: '500' }],
+        'filter': ['13px', { lineHeight: '18px', fontWeight: '500' }],
       },
 
       borderRadius: {
@@ -121,6 +157,7 @@ module.exports = {
         'card': '16px',
         'input': '8px',
         'base': '6px',
+        'filter': '20px',
       },
 
       boxShadow: {
@@ -128,12 +165,15 @@ module.exports = {
         'card-hover': '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
         'button': '0 1px 3px 0 rgba(0, 0, 0, 0.1)',
         'input-focus': '0 0 0 3px rgba(59, 130, 246, 0.1)',
+        'filter': '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
+        'filter-active': '0 2px 4px 0 rgba(0, 0, 0, 0.1)',
       },
 
       animation: {
         'fade-in': 'fadeIn 0.5s ease-in-out',
         'slide-up': 'slideUp 0.3s ease-out',
         'pulse-soft': 'pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+        'filter-bounce': 'filterBounce 0.2s ease-out',
       },
 
       keyframes: {
@@ -144,6 +184,11 @@ module.exports = {
         slideUp: {
           '0%': { transform: 'translateY(10px)', opacity: '0' },
           '100%': { transform: 'translateY(0)', opacity: '1' },
+        },
+        filterBounce: {
+          '0%': { transform: 'scale(1)' },
+          '50%': { transform: 'scale(1.05)' },
+          '100%': { transform: 'scale(1)' },
         }
       }
     },

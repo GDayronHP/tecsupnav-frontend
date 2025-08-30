@@ -11,7 +11,7 @@ export default function TabLayout() {
         tabBarInactiveTintColor: "gray",
         tabBarStyle: {
           paddingBottom: 5,
-          height: 60
+          height: 50
         },
       }}
     >
