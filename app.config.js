@@ -1,3 +1,4 @@
+import { config } from 'dotenv';
 import 'dotenv/config';
 
 export default
@@ -42,12 +43,22 @@ export default
             ],
             category: ["BROWSABLE", "DEFAULT"]
           }
-        ]
+        ],
+        // config: {
+        //   googleMaps: {
+        //     apiKey: process.env.GOOGLE_MAPS_API_KEY,
+        //   },
+        // }
       },
       web: {
         favicon: ""
       },
-      plugins: ["expo-router", "expo-secure-store"],
+      plugins: [
+        "expo-router",
+        "expo-secure-store",
+        // "react-native-maps",
+      ]
+      ,
       extra: {
         router: {},
         eas: {

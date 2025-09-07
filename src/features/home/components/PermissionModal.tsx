@@ -4,14 +4,14 @@ import * as Location from "expo-location";
 import { Ionicons } from "@expo/vector-icons";
 import { Alert, Modal, TouchableOpacity } from "react-native";
 
-export default PermissionModal = ({
+export default function PermissionModal ({
   setIsLoading,
   setShowMainScreen,
   showPermissionModal,
   setShowPermissionModal,
   dontAskAgain,
   setDontAskAgain,
-}) => {
+}){
   const requestLocationPermission = async () => {
     try {
       setShowPermissionModal(false);

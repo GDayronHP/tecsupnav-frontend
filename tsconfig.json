@@ -1,4 +1,17 @@
 {
-  "compilerOptions": {},
+  "compilerOptions": {
+    "paths": {
+      "@assets/*": ["./assets/*"],
+      "@app/*": ["./src/app/*"],
+      "@features/*": ["./src/features/*"],
+      "@layouts/*": ["./src/shared/layouts/*"],
+      "@components/*": ["./src/shared/components/*"],
+      "@navigation/*": ["./src/shared/navigation/*"],
+      "@hooks/*": ["./src/shared/hooks/*"],
+      "@utils/*": ["./src/shared/utils/*"],
+      "@styles/*": ["./styles/*"],
+      "@types/*": ["./src/types/*"]
+    }
+  },
   "extends": "expo/tsconfig.base"
 }

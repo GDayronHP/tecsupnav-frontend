@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { View, Text, TextInput, TouchableOpacity } from "react-native";
+import React, { useState, useEffect } from "react";
+import { View, Text, TouchableOpacity, Alert } from "react-native";
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -17,9 +17,17 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import Sidebar from "../components/AsideSection";
 import ChatBot from "../components/ChatBot";
+import Map from "../components/Map";
 import EmergencyContactsModal from "../components/EmergencyContactsModal";
+import MapSearchBar from "../components/MapSearchBar";
+import PlaceInfoCard from "../components/PlaceInfoCard";
 import { Image } from "expo-image";
+import * as Speech from "expo-speech";
+import { Place } from "@types/place";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import PlaceService from "../services/placeService";
 
+const LOCATIONS_KEY = 'tecsupnav_locations';
 const SIDEBAR_WIDTH = 320;
 
 export default function MainScreen() {
@@ -27,8 +35,40 @@ export default function MainScreen() {
   const [isChatBotVisible, setIsChatBotVisible] = useState(false);
   const [showEmergencyModal, setShowEmergencyModal] = useState(false);
 
+  const [locations, setLocations] = useState<Place[]>([]);
+  const [loadingLocations, setLoadingLocations] = useState(true);
+
+  const [selectedPlace, setSelectedPlace] = useState<Place | null>(null);
+  const [showPlaceInfo, setShowPlaceInfo] = useState(false);
+
   const translateX = useSharedValue(-SIDEBAR_WIDTH);
   const overlayOpacity = useSharedValue(0);
+
+  useEffect(() => {
+    let isMounted = true;
+    const loadLocations = async () => {
+      try {
+        // 1. Load locations from AsyncStorage
+        const savedLocations = await AsyncStorage.getItem(LOCATIONS_KEY);
+        if (isMounted && savedLocations) {
+          setLocations(JSON.parse(savedLocations));
+        }
+        // 2. Fetch latest locations from API
+        const placeService = new PlaceService();
+        const apiLocations = await placeService.getAll();
+        if (isMounted) {
+          setLocations(Array.isArray(apiLocations) ? apiLocations : []);
+          AsyncStorage.setItem(LOCATIONS_KEY, JSON.stringify(apiLocations || []));
+        }
+      } catch (error) {
+        Alert.alert("Error", "No se pudieron cargar las ubicaciones.");
+      } finally {
+        if (isMounted) setLoadingLocations(false);
+      }
+    };
+    loadLocations();
+    return () => { isMounted = false; };
+  }, []);
 
   const openSidebar = () => {
     setIsOpen(true);
@@ -49,13 +89,8 @@ export default function MainScreen() {
     });
   };
 
-  const openChatBot = () => {
-    setIsChatBotVisible(true);
-  };
-
-  const closeChatBot = () => {
-    setIsChatBotVisible(false);
-  };
+  const openChatBot = () => setIsChatBotVisible(true);
+  const closeChatBot = () => setIsChatBotVisible(false);
 
   const panGesture = Gesture.Pan()
     .enabled(true)
@@ -144,7 +179,7 @@ export default function MainScreen() {
           </GestureDetector>
 
           {/* Search Header */}
-          <View className="flex-row items-center px-4 py-3 gap-2">
+          <View className="flex-row flex items-center px-4 py-3 gap-2">
             <TouchableOpacity
               className="w-11 h-11 rounded-full bg-white justify-center items-center shadow-md"
               onPress={openSidebar}
@@ -152,13 +187,14 @@ export default function MainScreen() {
               <Ionicons name="menu" size={24} color="#333" />
             </TouchableOpacity>
 
-            <View className="flex-1 h-11 bg-white rounded-full px-4 justify-center shadow-md">
-              <TextInput
-                className="text-base text-neutral-800"
-                placeholder="Buscar aquí"
-                placeholderTextColor="#999"
-              />
-            </View>
+            {/* MapSearchBar recibe locations como prop */}
+            <MapSearchBar
+              locations={locations}
+              onSelect={place => {
+                setSelectedPlace(place);
+                setShowPlaceInfo(true);
+              }}
+            />
 
             <TouchableOpacity
               className="w-11 h-11 rounded-full bg-white justify-center items-center relative shadow-md"
@@ -185,7 +221,7 @@ export default function MainScreen() {
                   Campus Universitario
                 </Text>
                 <Text className="text-sm text-neutral-500">
-                  5 ubicaciones disponibles
+                  {locations.length} ubicaciones disponibles
                 </Text>
               </View>
             </View>
@@ -209,27 +245,10 @@ export default function MainScreen() {
 
           {/* Placeholder map */}
           <View className="flex-1 mx-4 mb-5 rounded-2xl overflow-hidden relative">
-            <View className="flex-1 bg-neutral-200 justify-center items-center rounded-2xl">
-              <Text className="text-lg font-semibold text-neutral-500 mb-2">
-                Mapa del Campus
-              </Text>
-              <Text className="text-sm text-neutral-400">
-                Vista satelital del campus universitario
-              </Text>
-            </View>
+            <Map />
 
-            {/* Your location */}
-            <View className="absolute bottom-20 left-1/2 -ml-[6px] items-center">
-              <View className="w-3 h-3 rounded-full bg-blue-500 border-2 border-white" />
-              <View className="bg-white px-2 py-1 rounded-md mt-2 shadow-md">
-                <Text className="text-xs text-neutral-800 font-medium">
-                  Tu ubicación
-                </Text>
-              </View>
-            </View>
-
-            {/* Flash button */}
-            <View className="absolute right-4 top-4">
+            {/* Emergency Button */}
+            <View className="absolute right-4 bottom-4">
               <TouchableOpacity
                 className="w-11 h-11 rounded-full bg-error-500 justify-center items-center shadow-lg"
                 onPress={() => {
@@ -240,24 +259,17 @@ export default function MainScreen() {
                 <Ionicons name="flash" size={20} color="white" />
               </TouchableOpacity>
             </View>
-
-            {/* Compass */}
-            <View className="absolute right-4 bottom-4 items-center">
-              <TouchableOpacity className="w-11 h-11 rounded-full bg-white justify-center items-center mb-1 shadow-md">
-                <Ionicons name="compass-outline" size={24} color="#666" />
-              </TouchableOpacity>
-              <Text className="text-xs text-neutral-500 font-medium">
-                Norte
-              </Text>
-            </View>
-
-            {/* Navigation */}
-            <View className="absolute right-4 bottom-24">
-              <TouchableOpacity className="w-11 h-11 rounded-full bg-white justify-center items-center shadow-md">
-                <Ionicons name="navigate" size={20} color="#007AFF" />
-              </TouchableOpacity>
-            </View>
           </View>
+
+          {/* Place Info Card (modal con overlay) */}
+          <PlaceInfoCard
+            place={selectedPlace}
+            isVisible={showPlaceInfo && !!selectedPlace}
+            onClose={() => setShowPlaceInfo(false)}
+            onRoutePress={() => {
+              // Aquí irá la lógica para mostrar la ruta
+            }}
+          />
 
           {/* Overlay con gesto */}
           {isOpen && (
@@ -275,17 +287,7 @@ export default function MainScreen() {
             </GestureDetector>
           )}
 
-          {/* Sidebar con gesto */}
-          {isOpen && (
-            <GestureDetector gesture={panGesture}>
-              <Animated.View
-                className="absolute left-0 top-0 bottom-0 bg-white z-50 shadow-2xl"
-                style={[{ width: SIDEBAR_WIDTH }, sidebarAnimatedStyle]}
-              >
-                <Sidebar closeSidebar={closeSidebar} />
-              </Animated.View>
-            </GestureDetector>
-          )}
+
         </View>
       </GestureHandlerRootView>
 
@@ -298,6 +300,15 @@ export default function MainScreen() {
           setShowEmergencyModal(false);
         }}
       />
+      {/* Sidebar */}
+      {isOpen && (
+        <Animated.View
+          className="absolute left-0 top-0 bottom-0 bg-white z-50 shadow-2xl"
+          style={[{ width: SIDEBAR_WIDTH }, sidebarAnimatedStyle]}
+        >
+          <Sidebar closeSidebar={closeSidebar} locations={locations} loadingLocations={loadingLocations} />
+        </Animated.View>
+      )}
     </>
   );
 }

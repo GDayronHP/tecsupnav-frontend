@@ -99,6 +99,10 @@ module.exports = {
           'laboratorio-text': '#3730a3',
           'servicio-bg': '#fef3c7',
           'servicio-text': '#92400e',
+          'cafeteria-bg': '#bb9cff', 
+          'cafeteria-text': '#374151',  
+          'oficina-bg': '#caff9c',
+          'oficina-text': '#374151',
         },
 
         filter: {
@@ -129,6 +133,24 @@ module.exports = {
           'servicio-border': '#c026d3',
           'servicio-bg-active': '#c026d3',
           'servicio-text-active': '#ffffff',
+
+          // Colores para Cafeteria
+          'cafeteria-bg': '#bb9cff',            
+          'cafeteria-bg-light': '#d6c7ff',       
+          'cafeteria-bg-dark': '#9a7bff',      
+          'cafeteria-text': '#374151',            
+          'cafeteria-text-active': '#ffffff',
+          'cafeteria-border': '#a68cff',     
+          'cafeteria-bg-active': '#9a7bff',     
+
+          // Colores para oficina
+          'oficina-bg': '#caff9c',    
+          'oficina-bg-light': '#e5ffbf',     
+          'oficina-bg-dark': '#9fff6b',    
+          'oficina-text': '#374151',         
+          'oficina-text-active': '#ffffff',   
+          'oficina-border': '#b8e68c',          
+          'oficina-bg-active': '#9fff6b',  
           
           // Estados inactivos generales
           'inactive-bg': '#ffffff',

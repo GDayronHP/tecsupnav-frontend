@@ -20,6 +20,7 @@ module.exports = function (api) {
             '@hooks': './src/shared/hooks',
             '@utils': './src/shared/utils',
             '@styles': './styles',
+            '@types': './src/types',
           },
         },
       ],
