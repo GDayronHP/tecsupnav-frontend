@@ -1,20 +1,6 @@
 import { PlaceTypesResponseV1 } from '@types/placeType_response_v1';
 import { httpGet } from '@utils/httpClient';
-
-// Types y interfaces
-export interface PlaceType {
-  id: string;
-  nombre: string;
-  descripcion?: string;
-  icono?: string;
-  color?: string;
-  activo: boolean;
-  createdAt: Date;
-  updatedAt: Date;
-  _count?: {
-    lugares: number;
-  };
-}
+import { PlaceType } from '@types/place';
 
 export interface CreatePlaceTypeDto {
   nombre: string;

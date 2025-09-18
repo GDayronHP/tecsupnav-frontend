@@ -35,7 +35,6 @@ const PlaceInfoCard: React.FC<PlaceInfoCardProps> = ({
   useEffect(() => {
     if (isVisible) {
       setVisible(true);
-      // Animación de entrada (slide suave, sin bounce)
       Animated.parallel([
         Animated.timing(fadeAnim, {
           toValue: 1,
@@ -51,7 +50,6 @@ const PlaceInfoCard: React.FC<PlaceInfoCardProps> = ({
         }),
       ]).start();
     } else if (visible) {
-      // Animación de salida (slide suave hacia abajo)
       Animated.parallel([
         Animated.timing(fadeAnim, {
           toValue: 0,
@@ -85,7 +83,6 @@ const PlaceInfoCard: React.FC<PlaceInfoCardProps> = ({
         }
       ]}
     >
-      {/* Overlay oscuro */}
       <TouchableWithoutFeedback onPress={onClose}>
         <View 
           style={{
@@ -99,7 +96,6 @@ const PlaceInfoCard: React.FC<PlaceInfoCardProps> = ({
         />
       </TouchableWithoutFeedback>
 
-      {/* Contenido del modal */}
       <Animated.View
         style={[
           {
@@ -111,7 +107,7 @@ const PlaceInfoCard: React.FC<PlaceInfoCardProps> = ({
           }
         ]}
       >
-        {/* Indicador de arrastre */}
+
         <View className="bg-white rounded-t-3xl pt-2 pb-0">
           <TouchableOpacity 
             onPress={onClose}
@@ -122,9 +118,7 @@ const PlaceInfoCard: React.FC<PlaceInfoCardProps> = ({
           </TouchableOpacity>
         </View>
 
-        {/* Contenido principal */}
         <View className="bg-white px-6 pb-8">
-          {/* Header con botón de cerrar */}
           <View className="flex-row items-center justify-between mb-4">
             <View className="flex-row items-center flex-1">
               <View className="bg-cyan-50 p-2 rounded-full mr-3">
@@ -148,7 +142,6 @@ const PlaceInfoCard: React.FC<PlaceInfoCardProps> = ({
             </TouchableOpacity>
           </View>
 
-          {/* Descripción */}
           {place.descripcion && (
             <View className="mb-4">
               <Text className="text-base text-neutral-700 leading-6">
@@ -157,7 +150,6 @@ const PlaceInfoCard: React.FC<PlaceInfoCardProps> = ({
             </View>
           )}
 
-          {/* Información adicional */}
           <View className="bg-neutral-50 rounded-xl p-4 mb-6">
             <View className="flex-row items-center mb-2">
               <Ionicons name="map-outline" size={16} color="#6B7280" />
@@ -169,8 +161,7 @@ const PlaceInfoCard: React.FC<PlaceInfoCardProps> = ({
               {place.latitud}, {place.longitud}
             </Text>
           </View>
-
-          {/* Botones de acción */}
+          
           <View className="flex-row gap-3">
             <TouchableOpacity
               className="flex-1 bg-cyan-500 py-4 rounded-2xl items-center shadow-sm"
@@ -180,7 +171,7 @@ const PlaceInfoCard: React.FC<PlaceInfoCardProps> = ({
               <View className="flex-row items-center">
                 <Ionicons name="navigate" size={20} color="#fff" />
                 <Text className="text-white text-base font-semibold ml-2">
-                  Obtener Ruta
+                  Iniciar
                 </Text>
               </View>
             </TouchableOpacity>

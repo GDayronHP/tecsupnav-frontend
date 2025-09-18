@@ -15,7 +15,7 @@ import {
   GestureHandlerRootView,
 } from "react-native-gesture-handler";
 import { Ionicons } from "@expo/vector-icons";
-import Sidebar from "../components/AsideSection";
+import Sidebar from "../components/SideBar";
 import ChatBot from "../components/ChatBot";
 import Map from "../components/Map";
 import EmergencyContactsModal from "../components/EmergencyContactsModal";
@@ -39,6 +39,7 @@ export default function MainScreen() {
   const [loadingLocations, setLoadingLocations] = useState(true);
 
   const [selectedPlace, setSelectedPlace] = useState<Place | null>(null);
+  const [showRoute, setShowRoute] = useState<boolean>(false);
   const [showPlaceInfo, setShowPlaceInfo] = useState(false);
 
   const translateX = useSharedValue(-SIDEBAR_WIDTH);
@@ -169,7 +170,6 @@ export default function MainScreen() {
       opacity: overlayOpacity.value,
     };
   });
-
   return (
     <>
       <GestureHandlerRootView className="flex-1">
@@ -193,6 +193,7 @@ export default function MainScreen() {
               onSelect={place => {
                 setSelectedPlace(place);
                 setShowPlaceInfo(true);
+                setShowRoute(true);
               }}
             />
 
@@ -245,7 +246,7 @@ export default function MainScreen() {
 
           {/* Placeholder map */}
           <View className="flex-1 mx-4 mb-5 rounded-2xl overflow-hidden relative">
-            <Map />
+            <Map locations={locations} selectedPlace={selectedPlace} showRoute={showRoute} />
 
             {/* Emergency Button */}
             <View className="absolute right-4 bottom-4">
@@ -286,9 +287,23 @@ export default function MainScreen() {
               </Animated.View>
             </GestureDetector>
           )}
-
-
         </View>
+        {/* Sidebar */}
+        {isOpen && (
+          <Animated.View
+            className="absolute left-0 top-0 bottom-0 bg-white z-50 shadow-2xl"
+            style={[{ width: SIDEBAR_WIDTH }, sidebarAnimatedStyle]}
+          >
+            <Sidebar
+              closeSidebar={closeSidebar}
+              locations={locations}
+              loadingLocations={loadingLocations}
+              setSelectedPlace={setSelectedPlace}
+              setShowPlaceInfo={setShowPlaceInfo}
+              setShowRoute={setShowRoute}
+            />
+          </Animated.View>
+        )}
       </GestureHandlerRootView>
 
       <ChatBot isVisible={isChatBotVisible} onClose={closeChatBot} />
@@ -300,15 +315,6 @@ export default function MainScreen() {
           setShowEmergencyModal(false);
         }}
       />
-      {/* Sidebar */}
-      {isOpen && (
-        <Animated.View
-          className="absolute left-0 top-0 bottom-0 bg-white z-50 shadow-2xl"
-          style={[{ width: SIDEBAR_WIDTH }, sidebarAnimatedStyle]}
-        >
-          <Sidebar closeSidebar={closeSidebar} locations={locations} loadingLocations={loadingLocations} />
-        </Animated.View>
-      )}
     </>
   );
 }

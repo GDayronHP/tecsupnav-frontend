@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 
-import { View, StyleSheet } from "react-native";
+import { View} from "react-native";
 
 import PermissionModal from "../components/PermissionModal";
 import LoadingScreen from "./LoadingScreen";

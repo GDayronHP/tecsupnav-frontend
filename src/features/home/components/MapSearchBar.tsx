@@ -17,7 +17,7 @@ interface MapSearchBarProps {
   onSelect: (place: Place) => void;
 }
 
-const MapSearchBar: React.FC<MapSearchBarProps> = ({ locations, onSelect }) => {
+function MapSearchBar ({ locations, onSelect }: MapSearchBarProps) {
   const [searchText, setSearchText] = useState("");
   const [showDropdown, setShowDropdown] = useState(false);
   

@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useRef, useEffect } from "react";
 import {
   View,
   Text,
@@ -8,6 +8,8 @@ import {
   Alert,
   StatusBar,
   SafeAreaView,
+  Animated,
+  Pressable,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 
@@ -35,6 +37,21 @@ const emergencyContacts = [
 ];
 
 const EmergencyContactsModal = ({ visible, onClose }) => {
+  // Animación de opacidad para el overlay
+  const overlayOpacity = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    if (visible) {
+      Animated.timing(overlayOpacity, {
+        toValue: 1,
+        duration: 300,
+        useNativeDriver: true,
+      }).start();
+    } else {
+      overlayOpacity.setValue(0);
+    }
+  }, [visible]);
+
   const makeCall = (phoneNumber) => {
     const cleanPhone = phoneNumber.replace(/[^\d]/g, "");
     const phoneUrl = `tel:${cleanPhone}`;
@@ -59,18 +76,34 @@ const EmergencyContactsModal = ({ visible, onClose }) => {
   if (!visible) return null;
 
   return (
-    <Modal
-      visible={visible}
-      animationType="slide"
-      transparent={true}
-      presentationStyle="overFullScreen"
-      statusBarTranslucent={true}
-      onRequestClose={onClose}
-      style={{ zIndex: 9999 }}
-    >
-      <StatusBar backgroundColor="rgba(0,0,0,0.5)" barStyle="light-content" />
+    <>
+      {/* Overlay animado */}
+      <Animated.View
+        style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          backgroundColor: 'rgba(0, 0, 0, 0.5)',
+          opacity: overlayOpacity,
+        }}
+      >
+        <Pressable onPress={() => { }}>
+          <View style={{ flex: 1 }} />
+        </Pressable>
+      </Animated.View>
 
-      <View style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.5)" }}>
+      <Modal
+        visible={visible}
+        animationType="fade"
+        transparent={true}
+        presentationStyle="overFullScreen"
+        statusBarTranslucent={true}
+        onRequestClose={onClose}
+        style={{ zIndex: 9999 }}
+      >
+        <StatusBar backgroundColor="rgba(0,0,0,0.5)" barStyle="light-content" />
         <SafeAreaView
           style={{ flex: 1, justifyContent: "center", paddingHorizontal: 20 }}
         >
@@ -209,8 +242,8 @@ const EmergencyContactsModal = ({ visible, onClose }) => {
             </View>
           </View>
         </SafeAreaView>
-      </View>
-    </Modal>
+      </Modal>
+    </>
   );
 };
 

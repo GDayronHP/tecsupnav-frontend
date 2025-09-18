@@ -4,12 +4,15 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
+  TouchableWithoutFeedback,
   ScrollView,
   Animated,
   Dimensions,
   KeyboardAvoidingView,
   Platform,
   Keyboard,
+  Pressable,
+  Easing,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -32,9 +35,11 @@ const ChatBot = ({ isVisible, onClose }) => {
   const [isListening, setIsListening] = useState(false);
   const [keyboardHeight, setKeyboardHeight] = useState(0);
   const [isKeyboardVisible, setIsKeyboardVisible] = useState(false);
+  const [shouldRender, setShouldRender] = useState(false);
 
   const scrollViewRef = useRef(null);
   const slideAnim = useRef(new Animated.Value(screenHeight)).current;
+  const overlayOpacity = useRef(new Animated.Value(0)).current;
   const insets = useSafeAreaInsets();
 
   const frequentQuestions = [
@@ -73,20 +78,37 @@ const ChatBot = ({ isVisible, onClose }) => {
 
   useEffect(() => {
     if (isVisible) {
-      Animated.spring(slideAnim, {
-        toValue: screenHeight - CHATBOT_HEIGHT,
-        useNativeDriver: false,
-        tension: 100,
-        friction: 8,
-      }).start();
-    } else {
-      Animated.timing(slideAnim, {
-        toValue: screenHeight,
-        duration: 300,
-        useNativeDriver: false,
-      }).start();
+      setShouldRender(true);
+      Animated.parallel([
+        Animated.timing(overlayOpacity, {
+          toValue: 1,
+          duration: 300,
+          useNativeDriver: true,
+        }),
+        Animated.timing(slideAnim, {
+          toValue: screenHeight - CHATBOT_HEIGHT,
+          duration: 300,
+          useNativeDriver: false,
+          easing: Easing.out(Easing.exp),
+        }),
+      ]).start();
+    } else if (shouldRender) {
+      Animated.parallel([
+        Animated.timing(overlayOpacity, {
+          toValue: 0,
+          duration: 250,
+          useNativeDriver: true,
+        }),
+        Animated.timing(slideAnim, {
+          toValue: screenHeight,
+          duration: 300,
+          useNativeDriver: false,
+        }),
+      ]).start(() => {
+        setShouldRender(false);
+      });
     }
-  }, [isVisible]);
+  }, [isVisible, shouldRender]);
 
   const sendMessage = (messageText = inputText) => {
     if (!messageText.trim()) return;
@@ -101,7 +123,6 @@ const ChatBot = ({ isVisible, onClose }) => {
     setMessages((prev) => [...prev, userMessage]);
     setInputText("");
 
-    // Simular respuesta del bot después de un delay
     setTimeout(() => {
       const botResponse = generateBotResponse(messageText);
       setMessages((prev) => [...prev, botResponse]);
@@ -160,6 +181,12 @@ const ChatBot = ({ isVisible, onClose }) => {
     sendMessage(question);
   };
 
+  const handleClose = () => {
+    setIsListening(false);
+    Keyboard.dismiss();
+    onClose();
+  };
+
   // <----------------- VOICE RECOGNITION ------------------->
 
   // Implement voice recognition
@@ -176,187 +203,205 @@ const ChatBot = ({ isVisible, onClose }) => {
     });
   };
 
+  if (!shouldRender) return null;
+
   return (
-    <Animated.View
-      className="absolute left-0 right-0 bg-white z-60"
-      style={{
-        top: slideAnim,
-        height: CHATBOT_HEIGHT,
-        borderTopLeftRadius: 20,
-        borderTopRightRadius: 20,
-        shadowColor: "#000",
-        shadowOffset: {
-          width: 0,
-          height: -2,
-        },
-        shadowOpacity: 0.25,
-        shadowRadius: 10,
-        elevation: 10,
-        paddingBottom: insets.bottom,
-      }}
-    >
-      {/* Header fijo */}
-      <View className="bg-tecsup-cyan px-4 py-3 flex-row items-center justify-between rounded-t-[20px]">
-        <View className="flex-row items-center flex-1">
-          <View className="w-10 h-10 bg-white/20 rounded-full justify-center items-center mr-3">
-            <Ionicons name="chatbubble" size={20} color="white" />
-          </View>
-          <View className="flex-1">
-            <Text className="text-white font-semibold text-lg">
-              Asistente CampusGo
-            </Text>
-            <Text className="text-white/80 text-sm">
-              Navegación inteligente Tecsup
-            </Text>
-          </View>
-        </View>
-        <TouchableOpacity
-          onPress={() => {
-            setIsListening(false);
-            Keyboard.dismiss();
-            onClose();
-          }}
-          className="w-8 h-8 bg-white/20 rounded-full justify-center items-center"
-        >
-          <Ionicons name="close" size={18} color="white" />
-        </TouchableOpacity>
-      </View>
-
-      <KeyboardAvoidingView
-        behavior={Platform.OS === "ios" ? "padding" : "height"}
-        keyboardVerticalOffset={0}
-        className="flex-1"
+    <View className="absolute top-0 left-0 right-0 bottom-0 z-60">
+      {/* Overlay que bloquea interacciones */}
+      <Animated.View
+        style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          backgroundColor: 'rgba(0, 0, 0, 0.5)',
+          opacity: overlayOpacity,
+        }}
       >
-        {/* Messages Container */}
-        <ScrollView
-          ref={scrollViewRef}
-          className="flex-1 px-4 py-4"
-          showsVerticalScrollIndicator={false}
-          contentContainerStyle={{ 
-            paddingBottom: 20,
-            flexGrow: 1
-          }}
-          keyboardShouldPersistTaps="handled"
-        >
-          {messages.map((message) => (
-            <View key={message.id} className="mb-4">
-              <View
-                className={`flex-row ${
-                  message.isBot ? "justify-start" : "justify-end"
-                }`}
-              >
-                {message.isBot && (
-                  <View className="w-8 h-8 bg-tecsup-cyan rounded-full justify-center items-center mr-2 mt-1">
-                    <Ionicons name="chatbubble" size={16} color="white" />
-                  </View>
-                )}
+        <Pressable onPress={() => {}}>
+          <View style={{ flex: 1 }} />
+        </Pressable>
+      </Animated.View>
 
+      {/* ChatBot Modal */}
+      <Animated.View
+        className="absolute left-0 right-0 bg-white"
+        style={{
+          top: slideAnim,
+          height: CHATBOT_HEIGHT,
+          borderTopLeftRadius: 20,
+          borderTopRightRadius: 20,
+          shadowColor: "#000",
+          shadowOffset: {
+            width: 0,
+            height: -2,
+          },
+          shadowOpacity: 0.25,
+          shadowRadius: 10,
+          elevation: 10,
+          paddingBottom: insets.bottom,
+        }}
+      >
+        {/* Header fijo */}
+        <View className="bg-tecsup-cyan px-4 py-3 flex-row items-center justify-between rounded-t-[20px]">
+          <View className="flex-row items-center flex-1">
+            <View className="w-10 h-10 bg-white/20 rounded-full justify-center items-center mr-3">
+              <Ionicons name="chatbubble" size={20} color="white" />
+            </View>
+            <View className="flex-1">
+              <Text className="text-white font-semibold text-lg">
+                Asistente CampusGo
+              </Text>
+              <Text className="text-white/80 text-sm">
+                Navegación inteligente Tecsup
+              </Text>
+            </View>
+          </View>
+          <TouchableOpacity
+            onPress={handleClose}
+            className="w-8 h-8 bg-white/20 rounded-full justify-center items-center"
+          >
+            <Ionicons name="close" size={18} color="white" />
+          </TouchableOpacity>
+        </View>
+
+        <KeyboardAvoidingView
+          behavior={Platform.OS === "ios" ? "padding" : "height"}
+          keyboardVerticalOffset={0}
+          className="flex-1"
+        >
+          {/* Messages Container */}
+          <ScrollView
+            ref={scrollViewRef}
+            className="flex-1 px-4 py-4"
+            showsVerticalScrollIndicator={false}
+            contentContainerStyle={{ 
+              paddingBottom: 20,
+              flexGrow: 1
+            }}
+            keyboardShouldPersistTaps="handled"
+          >
+            {messages.map((message) => (
+              <View key={message.id} className="mb-4">
                 <View
-                  className={`max-w-[75%] px-4 py-3 rounded-2xl ${
-                    message.isBot
-                      ? "bg-neutral-100 rounded-bl-sm"
-                      : "bg-tecsup-cyan rounded-br-sm"
+                  className={`flex-row ${
+                    message.isBot ? "justify-start" : "justify-end"
                   }`}
                 >
-                  <Text
-                    className={`text-base leading-5 ${
-                      message.isBot ? "text-neutral-800" : "text-white"
+                  {message.isBot && (
+                    <View className="w-8 h-8 bg-tecsup-cyan rounded-full justify-center items-center mr-2 mt-1">
+                      <Ionicons name="chatbubble" size={16} color="white" />
+                    </View>
+                  )}
+
+                  <View
+                    className={`max-w-[75%] px-4 py-3 rounded-2xl ${
+                      message.isBot
+                        ? "bg-neutral-100 rounded-bl-sm"
+                        : "bg-tecsup-cyan rounded-br-sm"
                     }`}
                   >
-                    {message.text}
-                  </Text>
-                  <Text
-                    className={`text-xs mt-1 ${
-                      message.isBot ? "text-neutral-500" : "text-white/70"
-                    }`}
-                  >
-                    {formatTime(message.timestamp)}
-                  </Text>
+                    <Text
+                      className={`text-base leading-5 ${
+                        message.isBot ? "text-neutral-800" : "text-white"
+                      }`}
+                    >
+                      {message.text}
+                    </Text>
+                    <Text
+                      className={`text-xs mt-1 ${
+                        message.isBot ? "text-neutral-500" : "text-white/70"
+                      }`}
+                    >
+                      {formatTime(message.timestamp)}
+                    </Text>
+                  </View>
                 </View>
               </View>
-            </View>
-          ))}
+            ))}
 
-          {/* Frequent Questions */}
-          {messages.length <= 1 && (
-            <View className="mt-4">
-              <Text className="text-neutral-600 font-medium mb-3">
-                Preguntas frecuentes:
-              </Text>
-              <View className="flex-row flex-wrap gap-2">
-                {frequentQuestions.map((question, index) => (
-                  <TouchableOpacity
-                    key={index}
-                    onPress={() => handleFrequentQuestion(question)}
-                    className="bg-tecsup-cyan/10 border border-tecsup-cyan/30 px-3 py-2 rounded-full"
-                  >
-                    <Text className="text-tecsup-cyan text-sm">
-                      {question}
-                    </Text>
-                  </TouchableOpacity>
-                ))}
+            {/* Frequent Questions */}
+            {messages.length <= 1 && (
+              <View className="mt-4">
+                <Text className="text-neutral-600 font-medium mb-3">
+                  Preguntas frecuentes:
+                </Text>
+                <View className="flex-row flex-wrap gap-2">
+                  {frequentQuestions.map((question, index) => (
+                    <TouchableOpacity
+                      key={index}
+                      onPress={() => handleFrequentQuestion(question)}
+                      className="bg-tecsup-cyan/10 border border-tecsup-cyan/30 px-3 py-2 rounded-full"
+                    >
+                      <Text className="text-tecsup-cyan text-sm">
+                        {question}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
               </View>
-            </View>
-          )}
-        </ScrollView>
+            )}
+          </ScrollView>
 
-        {/* Input Container */}
-        <View 
-          className="px-4 py-4 border-t border-neutral-200 bg-white"
-          style={{ 
-            paddingBottom: isKeyboardVisible ? insets.bottom : insets.bottom + TAB_BAR_HEIGHT,
-            marginBottom: Platform.OS === 'android' ? keyboardHeight : 0
-          }}
-        >
-          <View className="flex-row items-center bg-neutral-50 rounded-2xl px-4 py-2">
-            <TouchableOpacity className="mr-3" onPress={toggleVoiceInput}>
-              <Ionicons
-                name={isListening ? "stop" : "mic"}
-                size={20}
-                color={isListening ? "#ef4444" : "#6b7280"}
+          {/* Input Container */}
+          <View 
+            className="px-4 py-4 border-t border-neutral-200 bg-white"
+            style={{ 
+              paddingBottom: isKeyboardVisible ? insets.bottom : insets.bottom + TAB_BAR_HEIGHT,
+              marginBottom: Platform.OS === 'android' ? keyboardHeight : 0
+            }}
+          >
+            <View className="flex-row items-center bg-neutral-50 rounded-2xl px-4 py-2">
+              <TouchableOpacity className="mr-3" onPress={toggleVoiceInput}>
+                <Ionicons
+                  name={isListening ? "stop" : "mic"}
+                  size={20}
+                  color={isListening ? "#ef4444" : "#6b7280"}
+                />
+              </TouchableOpacity>
+
+              <TextInput
+                className="flex-1 text-base text-neutral-800 py-2"
+                placeholder="Pregúntame sobre ubicaciones..."
+                placeholderTextColor="#9ca3af"
+                value={inputText}
+                onChangeText={setInputText}
+                multiline
+                maxLength={500}
+                textAlignVertical="top"
+                style={{ 
+                  maxHeight: 80,
+                  minHeight: 40
+                }}
+                onSubmitEditing={() => {
+                  sendMessage();
+                  Keyboard.dismiss();
+                }}
+                returnKeyType="send"
               />
-            </TouchableOpacity>
 
-            <TextInput
-              className="flex-1 text-base text-neutral-800 py-2"
-              placeholder="Pregúntame sobre ubicaciones..."
-              placeholderTextColor="#9ca3af"
-              value={inputText}
-              onChangeText={setInputText}
-              multiline
-              maxLength={500}
-              textAlignVertical="top"
-              style={{ 
-                maxHeight: 80,
-                minHeight: 40
-              }}
-              onSubmitEditing={() => {
-                sendMessage();
-                Keyboard.dismiss();
-              }}
-              returnKeyType="send"
-            />
+              <TouchableOpacity
+                onPress={() => {
+                  sendMessage();
+                  Keyboard.dismiss();
+                }}
+                disabled={!inputText.trim()}
+                className={`w-8 h-8 rounded-full justify-center items-center ml-3 ${
+                  inputText.trim() ? "bg-tecsup-cyan" : "bg-neutral-300"
+                }`}
+              >
+                <Ionicons name="send" size={16} color="white" />
+              </TouchableOpacity>
+            </View>
 
-            <TouchableOpacity
-              onPress={() => {
-                sendMessage();
-                Keyboard.dismiss();
-              }}
-              disabled={!inputText.trim()}
-              className={`w-8 h-8 rounded-full justify-center items-center ml-3 ${
-                inputText.trim() ? "bg-tecsup-cyan" : "bg-neutral-300"
-              }`}
-            >
-              <Ionicons name="send" size={16} color="white" />
-            </TouchableOpacity>
+            <Text className="text-xs text-neutral-500 text-center mt-2">
+              Presiona el micrófono para hablar o escribe tu pregunta
+            </Text>
           </View>
-
-          <Text className="text-xs text-neutral-500 text-center mt-2">
-            Presiona el micrófono para hablar o escribe tu pregunta
-          </Text>
-        </View>
-      </KeyboardAvoidingView>
-    </Animated.View>
+        </KeyboardAvoidingView>
+      </Animated.View>
+    </View>
   );
 };
 
