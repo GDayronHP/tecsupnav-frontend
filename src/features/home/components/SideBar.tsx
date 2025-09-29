@@ -4,7 +4,6 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import useFilterData from '../hooks/useFilterData';
 
-// Components
 import { placeTypesService } from '../services/placeTypesService';
 import { PlaceType } from '@types/place';
 import FilterChips from './FilterChips';
@@ -29,7 +28,6 @@ const Sidebar = (
   const [filters, setFilters] = useState<PlaceType[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // Cargar datos y filtro desde AsyncStorage al montar
   useEffect(() => {
     let isMounted = true;
 
@@ -50,7 +48,6 @@ const Sidebar = (
         const apiFilters = await placeTypesService.getAll();
         if (isMounted) {
           setFilters(Array.isArray(apiFilters) ? apiFilters : []);
-          // Guardar en AsyncStorage
           AsyncStorage.setItem(FILTERS_KEY, JSON.stringify(apiFilters || []));
         }
       } catch (error) {

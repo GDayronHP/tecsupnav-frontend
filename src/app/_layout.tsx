@@ -3,15 +3,18 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { Stack } from "expo-router";
 
 import '../../styles/global.css';
+import { PlacesContextProvider } from "../shared/context/PlacesContext";
 
 function RootLayout() {
   return (
     <SafeAreaView style={{ flex: 1 }}>
-      <Stack screenOptions={
-        {
-          headerShown: false
-        }
-      } />
+      <PlacesContextProvider>
+        <Stack screenOptions={
+          {
+            headerShown: false
+          }
+        } />
+      </PlacesContextProvider>
     </SafeAreaView>
   );
 }

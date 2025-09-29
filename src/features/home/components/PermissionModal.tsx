@@ -4,14 +4,19 @@ import * as Location from "expo-location";
 import { Ionicons } from "@expo/vector-icons";
 import { Alert, Modal, TouchableOpacity } from "react-native";
 
-export default function PermissionModal ({
+import { usePlaces } from "@context/PlacesContext";
+
+export default function PermissionModal({
   setIsLoading,
   setShowMainScreen,
   showPermissionModal,
   setShowPermissionModal,
   dontAskAgain,
   setDontAskAgain,
-}){
+}) {
+
+  const { setGpsStatus } = usePlaces();
+
   const requestLocationPermission = async () => {
     try {
       setShowPermissionModal(false);
@@ -20,10 +25,9 @@ export default function PermissionModal ({
       const { status } = await Location.requestForegroundPermissionsAsync();
 
       if (status === "granted") {
-        setTimeout(() => {
-          setIsLoading(false);
-          setShowMainScreen(true);
-        }, 3000);
+        setIsLoading(false);
+        setShowMainScreen(true);
+        setGpsStatus('granted');
       } else {
         setIsLoading(false);
         Alert.alert(
@@ -75,11 +79,10 @@ export default function PermissionModal ({
               onPress={() => setDontAskAgain(!dontAskAgain)}
             >
               <View
-                className={`w-[18px] h-[18px] border-2 rounded-sm mr-2 justify-center items-center ${
-                  dontAskAgain
+                className={`w-[18px] h-[18px] border-2 rounded-sm mr-2 justify-center items-center ${dontAskAgain
                     ? "bg-primary-500 border-primary-500"
                     : "border-neutral-600"
-                }`}
+                  }`}
               >
                 {dontAskAgain && (
                   <Ionicons name="checkmark" size={14} color="white" />

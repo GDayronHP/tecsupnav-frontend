@@ -65,7 +65,8 @@ export default
           projectId: "ee593b5d-6f94-46ea-a58b-46daa5702247"
         },
         apiBaseUrl: process.env.API_BASE_URL,
-        androidClientId: process.env.ANDROID_CLIENT_ID
+        androidClientId: process.env.ANDROID_CLIENT_ID,
+        GOOGLE_MAPS_API_KEY: process.env.GOOGLE_MAPS_API_KEY,
       }
     }
   }

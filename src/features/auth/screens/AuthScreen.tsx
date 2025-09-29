@@ -23,11 +23,12 @@ const ANDROID_CLIENT_ID = Constants.expoConfig?.extra?.androidClientId;
 
 export default function AuthScreen() {
   const [isLoading, setIsLoading] = useState(false);
-  
+
   const router = useRouter();
-  
+
   const [request, response, promptAsync] = Google.useAuthRequest({
     androidClientId: ANDROID_CLIENT_ID,
+    webClientId: Constants.expoConfig?.extra?.webClientId,
   });
 
   const getUserInfo = async (accessToken) => {
@@ -35,11 +36,11 @@ export default function AuthScreen() {
       const response = await fetch(
         `https://www.googleapis.com/oauth2/v2/userinfo?access_token=${accessToken}`
       );
-      
+
       if (!response.ok) {
         throw new Error('Error obteniendo información del usuario');
       }
-      
+
       return await response.json();
     } catch (error) {
       console.error('Error obteniendo info del usuario:', error);
@@ -51,7 +52,7 @@ export default function AuthScreen() {
     try {
       console.log('🚀 Enviando datos a backend...');
       console.log('User info:', userInfo);
-      
+
       const response = await fetch(`${API_BASE_URL}/api/auth/google/mobile`, {
         method: 'POST',
         headers: {
@@ -67,7 +68,7 @@ export default function AuthScreen() {
       });
 
       const result = await response.json();
-      
+
       if (!response.ok || !result.success) {
         throw new Error(result.message || 'Error en la autenticación');
       }
@@ -92,16 +93,16 @@ export default function AuthScreen() {
     const handleGoogleResponse = async () => {
       if (response?.type === 'success') {
         setIsLoading(true);
-        
+
         try {
           const { authentication } = response;
-          
+
           if (authentication?.accessToken) {
             console.log('✅ Google access token recibido');
-            
+
             const userInfo = await getUserInfo(authentication.accessToken);
             console.log('✅ Info del usuario obtenida:', userInfo);
-            
+
             if (!userInfo.email?.endsWith('@tecsup.edu.pe')) {
               Alert.alert(
                 'Error de acceso',
@@ -116,27 +117,27 @@ export default function AuthScreen() {
               authentication.accessToken,
               userInfo
             );
-            
+
             await SecureStore.setItemAsync('access_token', backendResponse.access_token);
             await SecureStore.setItemAsync('user_info', JSON.stringify(backendResponse.user));
-            
+
             await SecureStore.setItemAsync('google_token', authentication.accessToken);
-            
+
             console.log('✅ Datos guardados en SecureStore');
             console.log('🚀 Redirigiendo a home...');
-            
+
             setTimeout(() => {
               navigateToHome();
             }, 100);
-            
+
           } else {
             throw new Error('No se recibió access token de Google');
           }
         } catch (error) {
           console.error('❌ Error en proceso de autenticación:', error);
-          
+
           let errorMessage = 'Error desconocido en la autenticación';
-          
+
           if (error.message.includes('correos institucionales')) {
             errorMessage = 'Solo se permiten correos institucionales (@tecsup.edu.pe)';
           } else if (error.message.includes('Token de Google inválido')) {
@@ -146,7 +147,7 @@ export default function AuthScreen() {
           } else if (error.message.includes('Network')) {
             errorMessage = 'Error de conexión. Verifica tu internet';
           }
-          
+
           Alert.alert('Error de autenticación', errorMessage);
           setIsLoading(false);
         }
@@ -167,17 +168,17 @@ export default function AuthScreen() {
 
   const handleLoginPress = useCallback(async () => {
     if (isLoading || !request) return;
-    
+
     try {
       setIsLoading(true);
       console.log('🚀 Iniciando login con Google...');
-      
+
       const result = await promptAsync();
 
       if (result.type === 'cancel') {
         setIsLoading(false);
       }
-      
+
     } catch (error) {
       console.error("❌ Error durante login con Google:", error);
       Alert.alert("Error", "No se pudo iniciar sesión con Google");
@@ -207,11 +208,10 @@ export default function AuthScreen() {
           </View>
 
           <Pressable
-            className={`flex-row items-center w-full border border-neutral-200 rounded-button py-4 px-4 mb-6 ${
-              isLoading || !request 
-                ? 'opacity-50' 
+            className={`flex-row items-center w-full border border-neutral-200 rounded-button py-4 px-4 mb-6 ${isLoading || !request
+                ? 'opacity-50'
                 : ' active:bg-neutral-100'
-            }`}
+              }`}
             disabled={isLoading || !request}
             onPress={handleLoginPress}
           >

@@ -6,12 +6,12 @@ type PlaceElementProps = {
   location: any;
   index: number;
   filteredLocations: any[];
+  color: string;
   handleLocationView: (location: any) => void;
-  getBadgeClasses: (category: string) => string;
   handleLocationRoute: (location: any) => void;
 };
 
-export default function PlaceElement({ location, index, filteredLocations, getBadgeClasses, handleLocationView, handleLocationRoute }: PlaceElementProps) {
+export default function PlaceElement({ location, index, filteredLocations, color, handleLocationView, handleLocationRoute }: PlaceElementProps) {
   return (
     <View key={location.id} className="mb-4">
       {/* Location Info */}
@@ -21,7 +21,7 @@ export default function PlaceElement({ location, index, filteredLocations, getBa
         </Text>
         <View className="flex-row items-center">
           <View
-            className={`px-2 py-1 rounded-base mr-2 ${getBadgeClasses((location.tipo.nombre).toLowerCase())}`}
+            className={`px-2 py-1 rounded-base mr-2 bg-[${color}]`}
           >
             <Text className="text-xs font-medium">{location.tipo.nombre}</Text>
           </View>

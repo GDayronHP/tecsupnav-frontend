@@ -1,5 +1,5 @@
-import HomeScreen from "../../features/home/screens";
+import HomeContainer from "@features/home/screens/HomeContainer";
 
 export default function HomeIndex() {
-  return <HomeScreen />;
+  return <HomeContainer />;
 }

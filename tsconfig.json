@@ -9,6 +9,7 @@
       "@navigation/*": ["./src/shared/navigation/*"],
       "@hooks/*": ["./src/shared/hooks/*"],
       "@utils/*": ["./src/shared/utils/*"],
+      "@context/*": ["./src/shared/context/*"],
       "@styles/*": ["./styles/*"],
       "@types/*": ["./src/types/*"]
     }
