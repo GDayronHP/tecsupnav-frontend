@@ -4,18 +4,45 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
-  TouchableWithoutFeedback,
   ScrollView,
-  Animated,
   Dimensions,
   KeyboardAvoidingView,
   Platform,
   Keyboard,
   Pressable,
-  Easing,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import Animated, { useAnimatedStyle } from 'react-native-reanimated';
+import { useButtonScale, usePerformantAnimation } from '../../../shared/hooks/usePerformantAnimation';
+
+// Botón animado para ChatBot
+const AnimatedChatButton = ({ children, onPress, className, style }: {
+  children: React.ReactNode;
+  onPress?: () => void;
+  className?: string;
+  style?: any;
+}) => {
+  const { scale, scaleDown, scaleUp } = useButtonScale();
+
+  const animatedStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: scale.value }]
+  }));
+
+  return (
+    <TouchableOpacity
+      onPressIn={scaleDown}
+      onPressOut={scaleUp}
+      onPress={onPress}
+      activeOpacity={1}
+      style={style}
+    >
+      <Animated.View style={[animatedStyle]} className={className}>
+        {children}
+      </Animated.View>
+    </TouchableOpacity>
+  );
+};
 
 const { height: screenHeight } = Dimensions.get("window");
 
@@ -38,9 +65,20 @@ const ChatBot = ({ isVisible, onClose }) => {
   const [shouldRender, setShouldRender] = useState(false);
 
   const scrollViewRef = useRef(null);
-  const slideAnim = useRef(new Animated.Value(screenHeight)).current;
-  const overlayOpacity = useRef(new Animated.Value(0)).current;
   const insets = useSafeAreaInsets();
+
+  // Hooks de animación que respetan el modo de rendimiento
+  const { animatedValue: slideAnim, animateWithTiming: animateSlide, animateWithCallback: animateSlideWithCallback } = usePerformantAnimation(CHATBOT_HEIGHT);
+  const { animatedValue: overlayOpacity, animateWithTiming: animateOverlayOpacity } = usePerformantAnimation(0);
+
+  // Estilos animados
+  const overlayAnimatedStyle = useAnimatedStyle(() => ({
+    opacity: overlayOpacity.value,
+  }));
+
+  const slideAnimatedStyle = useAnimatedStyle(() => ({
+    transform: [{ translateY: slideAnim.value }],
+  }));
 
   const frequentQuestions = [
     "¿Dónde está el Lab. de Electrónica?",
@@ -79,36 +117,17 @@ const ChatBot = ({ isVisible, onClose }) => {
   useEffect(() => {
     if (isVisible) {
       setShouldRender(true);
-      Animated.parallel([
-        Animated.timing(overlayOpacity, {
-          toValue: 1,
-          duration: 300,
-          useNativeDriver: true,
-        }),
-        Animated.timing(slideAnim, {
-          toValue: screenHeight - CHATBOT_HEIGHT,
-          duration: 300,
-          useNativeDriver: false,
-          easing: Easing.out(Easing.exp),
-        }),
-      ]).start();
+      // Animar overlay y slide simultáneamente
+      animateOverlayOpacity(1, { duration: 300 });
+      animateSlide(screenHeight - CHATBOT_HEIGHT, { duration: 300 });
     } else if (shouldRender) {
-      Animated.parallel([
-        Animated.timing(overlayOpacity, {
-          toValue: 0,
-          duration: 250,
-          useNativeDriver: true,
-        }),
-        Animated.timing(slideAnim, {
-          toValue: screenHeight,
-          duration: 300,
-          useNativeDriver: false,
-        }),
-      ]).start(() => {
+      // Animar cierre con callback para ocultar renderizado
+      animateOverlayOpacity(0, { duration: 250 });
+      animateSlideWithCallback(screenHeight, { duration: 300 }, () => {
         setShouldRender(false);
       });
     }
-  }, [isVisible, shouldRender]);
+  }, [isVisible, shouldRender, animateOverlayOpacity, animateSlide, animateSlideWithCallback]);
 
   const sendMessage = (messageText = inputText) => {
     if (!messageText.trim()) return;
@@ -209,39 +228,50 @@ const ChatBot = ({ isVisible, onClose }) => {
     <View className="absolute top-0 left-0 right-0 bottom-0 z-60">
       {/* Overlay que bloquea interacciones */}
       <Animated.View
-        style={{
-          position: 'absolute',
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          backgroundColor: 'rgba(0, 0, 0, 0.5)',
-          opacity: overlayOpacity,
-        }}
+        style={[
+          {
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: 'rgba(0, 0, 0, 0.5)',
+          },
+          overlayAnimatedStyle,
+        ]}
       >
-        <Pressable onPress={() => {}}>
+        <Pressable onPress={() => { }}>
           <View style={{ flex: 1 }} />
         </Pressable>
       </Animated.View>
 
+      {/* Área de cierre */}
+      <TouchableOpacity
+        className="flex-1"
+        activeOpacity={1}
+        onPress={onClose}
+      />
+
       {/* ChatBot Modal */}
       <Animated.View
         className="absolute left-0 right-0 bg-white"
-        style={{
-          top: slideAnim,
-          height: CHATBOT_HEIGHT,
-          borderTopLeftRadius: 20,
-          borderTopRightRadius: 20,
-          shadowColor: "#000",
-          shadowOffset: {
-            width: 0,
-            height: -2,
+        style={[
+          {
+            height: CHATBOT_HEIGHT,
+            borderTopLeftRadius: 20,
+            borderTopRightRadius: 20,
+            shadowColor: "#000",
+            shadowOffset: {
+              width: 0,
+              height: -2,
+            },
+            shadowOpacity: 0.25,
+            shadowRadius: 10,
+            elevation: 10,
+            paddingBottom: insets.bottom,
           },
-          shadowOpacity: 0.25,
-          shadowRadius: 10,
-          elevation: 10,
-          paddingBottom: insets.bottom,
-        }}
+          slideAnimatedStyle,
+        ]}
       >
         {/* Header fijo */}
         <View className="bg-tecsup-cyan px-4 py-3 flex-row items-center justify-between rounded-t-[20px]">
@@ -276,7 +306,7 @@ const ChatBot = ({ isVisible, onClose }) => {
             ref={scrollViewRef}
             className="flex-1 px-4 py-4"
             showsVerticalScrollIndicator={false}
-            contentContainerStyle={{ 
+            contentContainerStyle={{
               paddingBottom: 20,
               flexGrow: 1
             }}
@@ -285,9 +315,8 @@ const ChatBot = ({ isVisible, onClose }) => {
             {messages.map((message) => (
               <View key={message.id} className="mb-4">
                 <View
-                  className={`flex-row ${
-                    message.isBot ? "justify-start" : "justify-end"
-                  }`}
+                  className={`flex-row ${message.isBot ? "justify-start" : "justify-end"
+                    }`}
                 >
                   {message.isBot && (
                     <View className="w-8 h-8 bg-tecsup-cyan rounded-full justify-center items-center mr-2 mt-1">
@@ -296,23 +325,20 @@ const ChatBot = ({ isVisible, onClose }) => {
                   )}
 
                   <View
-                    className={`max-w-[75%] px-4 py-3 rounded-2xl ${
-                      message.isBot
+                    className={`max-w-[75%] px-4 py-3 rounded-2xl ${message.isBot
                         ? "bg-neutral-100 rounded-bl-sm"
                         : "bg-tecsup-cyan rounded-br-sm"
-                    }`}
+                      }`}
                   >
                     <Text
-                      className={`text-base leading-5 ${
-                        message.isBot ? "text-neutral-800" : "text-white"
-                      }`}
+                      className={`text-base leading-5 ${message.isBot ? "text-neutral-800" : "text-white"
+                        }`}
                     >
                       {message.text}
                     </Text>
                     <Text
-                      className={`text-xs mt-1 ${
-                        message.isBot ? "text-neutral-500" : "text-white/70"
-                      }`}
+                      className={`text-xs mt-1 ${message.isBot ? "text-neutral-500" : "text-white/70"
+                        }`}
                     >
                       {formatTime(message.timestamp)}
                     </Text>
@@ -345,21 +371,21 @@ const ChatBot = ({ isVisible, onClose }) => {
           </ScrollView>
 
           {/* Input Container */}
-          <View 
+          <View
             className="px-4 py-4 border-t border-neutral-200 bg-white"
-            style={{ 
+            style={{
               paddingBottom: isKeyboardVisible ? insets.bottom : insets.bottom + TAB_BAR_HEIGHT,
               marginBottom: Platform.OS === 'android' ? keyboardHeight : 0
             }}
           >
             <View className="flex-row items-center bg-neutral-50 rounded-2xl px-4 py-2">
-              <TouchableOpacity className="mr-3" onPress={toggleVoiceInput}>
+              <AnimatedChatButton className="mr-3" onPress={toggleVoiceInput}>
                 <Ionicons
                   name={isListening ? "stop" : "mic"}
                   size={20}
                   color={isListening ? "#ef4444" : "#6b7280"}
                 />
-              </TouchableOpacity>
+              </AnimatedChatButton>
 
               <TextInput
                 className="flex-1 text-base text-neutral-800 py-2"
@@ -370,7 +396,7 @@ const ChatBot = ({ isVisible, onClose }) => {
                 multiline
                 maxLength={500}
                 textAlignVertical="top"
-                style={{ 
+                style={{
                   maxHeight: 80,
                   minHeight: 40
                 }}
@@ -381,18 +407,16 @@ const ChatBot = ({ isVisible, onClose }) => {
                 returnKeyType="send"
               />
 
-              <TouchableOpacity
+              <AnimatedChatButton
                 onPress={() => {
                   sendMessage();
                   Keyboard.dismiss();
                 }}
-                disabled={!inputText.trim()}
-                className={`w-8 h-8 rounded-full justify-center items-center ml-3 ${
-                  inputText.trim() ? "bg-tecsup-cyan" : "bg-neutral-300"
-                }`}
+                className={`w-8 h-8 rounded-full justify-center items-center ml-3 ${inputText.trim() ? "bg-tecsup-cyan" : "bg-neutral-300"
+                  }`}
               >
                 <Ionicons name="send" size={16} color="white" />
-              </TouchableOpacity>
+              </AnimatedChatButton>
             </View>
 
             <Text className="text-xs text-neutral-500 text-center mt-2">

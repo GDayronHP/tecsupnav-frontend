@@ -53,7 +53,7 @@ export default function AuthScreen() {
       console.log('🚀 Enviando datos a backend...');
       console.log('User info:', userInfo);
 
-      const response = await fetch(`${API_BASE_URL}/api/auth/google/mobile`, {
+      const response = await fetch(`${API_BASE_URL}/auth/google/mobile`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

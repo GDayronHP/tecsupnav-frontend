@@ -1,4 +1,4 @@
-import { Place } from './place';
+import { Place } from '../place';
 
 export interface PlacesResponse {
   success: boolean;

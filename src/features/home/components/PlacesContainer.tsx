@@ -12,11 +12,6 @@ type PlacesContainerProps = {
 };
 
 export default function PlacesContainer({ filteredLocations = [], setSelectedPlace, closeSidebar, setShowPlaceInfo, setShowRoute }: PlacesContainerProps) {
-
-    useEffect(() => {
-        console.log("Filtered Locations updated:", filteredLocations);
-    }, [filteredLocations]);
-
     const handleLocationView = (location) => {
         setSelectedPlace(location);
         setShowRoute(false);

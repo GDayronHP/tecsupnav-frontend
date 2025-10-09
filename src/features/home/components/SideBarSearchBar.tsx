@@ -2,7 +2,32 @@ import { View, TouchableOpacity } from 'react-native'
 import { TextInput } from 'react-native-gesture-handler';
 import { Ionicons } from '@expo/vector-icons';
 import { useState } from 'react';
-import React from 'react'
+import React from 'react';
+import Animated, { useAnimatedStyle } from 'react-native-reanimated';
+import { useButtonScale } from '../../../shared/hooks/usePerformantAnimation';
+
+// Botón animado para limpiar búsqueda
+const AnimatedClearButton = ({ onPress }: { onPress: () => void }) => {
+  const { scale, scaleDown, scaleUp } = useButtonScale();
+
+  const animatedStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: scale.value }]
+  }));
+
+  return (
+    <TouchableOpacity
+      onPressIn={scaleDown}
+      onPressOut={scaleUp}
+      onPress={onPress}
+      className="ml-2"
+      activeOpacity={1}
+    >
+      <Animated.View style={animatedStyle}>
+        <Ionicons name="close-circle" size={20} color="#94a3b8" />
+      </Animated.View>
+    </TouchableOpacity>
+  );
+};
 
 type SearchBarProps = {
     setSearchText: (text: string) => void;
@@ -26,9 +51,7 @@ export default function SearchBar({ setSearchText, searchText }: SearchBarProps)
                 className="flex-1 ml-3 text-tecsup-text-primary text-body"
             />
             {searchText.length > 0 && (
-                <TouchableOpacity onPress={clearSearch} className="ml-2">
-                    <Ionicons name="close-circle" size={20} color="#94a3b8" />
-                </TouchableOpacity>
+                <AnimatedClearButton onPress={clearSearch} />
             )}
         </View>
     )

@@ -1,6 +1,35 @@
 import { StyleSheet, Text, View, TouchableOpacity } from 'react-native'
 import { Ionicons } from '@expo/vector-icons';
-import React from 'react'
+import React from 'react';
+import Animated, { useAnimatedStyle } from 'react-native-reanimated';
+import { useButtonScale } from '../../../shared/hooks/usePerformantAnimation';
+
+// Botón animado para acciones de lugar
+const AnimatedActionButton = ({ children, onPress, className }: {
+  children: React.ReactNode;
+  onPress: () => void;
+  className?: string;
+}) => {
+  const { scale, scaleDown, scaleUp } = useButtonScale();
+
+  const animatedStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: scale.value }]
+  }));
+
+  return (
+    <TouchableOpacity
+      onPressIn={scaleDown}
+      onPressOut={scaleUp}
+      onPress={onPress}
+      activeOpacity={1}
+      className='flex-1'
+    >
+      <Animated.View style={[animatedStyle]} className={className}>
+        {children}
+      </Animated.View>
+    </TouchableOpacity>
+  );
+};
 
 type PlaceElementProps = {
   location: any;
@@ -33,19 +62,23 @@ export default function PlaceElement({ location, index, filteredLocations, color
 
       {/* Action Buttons */}
       <View className="flex-row gap-2">
-        <TouchableOpacity className="flex-1 bg-tecsup-surface py-3 rounded-button flex-row items-center justify-center"
-          onPress={() => handleLocationView(location)}>
+        <AnimatedActionButton
+          className="flex-1 bg-tecsup-surface py-3 rounded-button flex-row items-center justify-center"
+          onPress={() => handleLocationView(location)}
+        >
           <Ionicons name="eye" size={16} color="#0ea5e9" />
           <Text className="text-tecsup-text-link text-label ml-2">
             Ver
           </Text>
-        </TouchableOpacity>
+        </AnimatedActionButton>
 
-        <TouchableOpacity className="flex-1 bg-tecsup-cyan py-3 rounded-button flex-row items-center justify-center"
-          onPress={() => handleLocationRoute(location)}>
+        <AnimatedActionButton 
+          className="flex-1 bg-tecsup-cyan py-3 rounded-button flex-row items-center justify-center"
+          onPress={() => handleLocationRoute(location)}
+        >
           <Ionicons name="navigate" size={16} color="white" />
           <Text className="text-white text-label ml-2">Ruta</Text>
-        </TouchableOpacity>
+        </AnimatedActionButton>
       </View>
 
       {/* Separator */}

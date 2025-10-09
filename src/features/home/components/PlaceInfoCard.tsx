@@ -3,16 +3,16 @@ import {
   View,
   Text,
   TouchableOpacity,
-  Animated,
   Dimensions,
   TouchableWithoutFeedback,
-  Easing,
   Pressable,
   Image
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { Place } from "@/types/place";
-import { Navigation } from "@types/navigation";
+import Animated, { useAnimatedStyle } from 'react-native-reanimated';
+import { usePerformantAnimation } from '../../../shared/hooks/usePerformantAnimation';
+import { Place } from "../../../types/place";
+import { Navigation } from "../../../types/navigation";
 
 interface PlaceInfoCardProps {
   place: Place;
@@ -34,53 +34,42 @@ const PlaceInfoCard: React.FC<PlaceInfoCardProps> = ({
   realTimeNavigation = false,
   navigationData,
 }) => {
-  const fadeAnim = useRef(new Animated.Value(0)).current;
-  const slideAnim = useRef(new Animated.Value(screenHeight)).current;
   const [visible, setVisible] = useState(isVisible);
+
+  // Hooks de animación que respetan el modo de rendimiento
+  const { animatedValue: fadeAnim, animateWithTiming: animateFade } = usePerformantAnimation(0);
+  const { animatedValue: slideAnim, animateWithTiming: animateSlide, animateWithCallback: animateSlideWithCallback } = usePerformantAnimation(screenHeight);
+
+  // Estilos animados
+  const fadeAnimatedStyle = useAnimatedStyle(() => ({
+    opacity: fadeAnim.value,
+  }));
+
+  const slideAnimatedStyle = useAnimatedStyle(() => ({
+    transform: [{ translateY: slideAnim.value }],
+  }));
 
   useEffect(() => {
     if (isVisible) {
       setVisible(true);
-      Animated.parallel([
-        Animated.timing(fadeAnim, {
-          toValue: 1,
-          duration: 300,
-          easing: Easing.out(Easing.quad),
-          useNativeDriver: true,
-        }),
-        Animated.timing(slideAnim, {
-          toValue: 0,
-          duration: 300,
-          easing: Easing.out(Easing.quad),
-          useNativeDriver: true,
-        }),
-      ]).start();
+      // Animar fade y slide simultáneamente
+      animateFade(1, { duration: 300 });
+      animateSlide(0, { duration: 300 });
     } else if (visible) {
-      Animated.parallel([
-        Animated.timing(fadeAnim, {
-          toValue: 0,
-          duration: 250,
-          easing: Easing.in(Easing.quad),
-          useNativeDriver: true,
-        }),
-        Animated.timing(slideAnim, {
-          toValue: screenHeight,
-          duration: 300,
-          easing: Easing.in(Easing.quad),
-          useNativeDriver: true,
-        }),
-      ]).start(() => setVisible(false));
+      // Animar cierre con callback para ocultar renderizado
+      animateFade(0, { duration: 250 });
+      animateSlideWithCallback(screenHeight, { duration: 300 }, () => {
+        setVisible(false);
+      });
     }
-  }, [isVisible]);
+  }, [isVisible, visible, animateFade, animateSlide, animateSlideWithCallback]);
 
   if (!place || !visible) return null;
 
   return (
     <Animated.View
       className="absolute top-0 left-0 right-0 bottom-0 z-20"
-      style={{
-        opacity: fadeAnim,
-      }}
+      style={fadeAnimatedStyle}
     >
       <TouchableWithoutFeedback onPress={onClose}>
         <View
@@ -92,9 +81,7 @@ const PlaceInfoCard: React.FC<PlaceInfoCardProps> = ({
       </TouchableWithoutFeedback>
       <Animated.View
         className={"absolute bottom-0 left-0 right-0"}
-        style={{
-          transform: [{ translateY: slideAnim }],
-        }}
+        style={slideAnimatedStyle}
       >
         <View className="bg-white rounded-t-3xl pt-2 pb-0">
           <TouchableOpacity

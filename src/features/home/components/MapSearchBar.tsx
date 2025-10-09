@@ -132,7 +132,7 @@ function MapSearchBar ({ locations, onSelect }: MapSearchBarProps) {
         </View>
 
         {/* Dropdown with results */}
-        {showDropdown && Array.isArray(filteredLocations) && filteredLocations.length > 0 && (
+        {showDropdown && Array.isArray(filteredLocations) && (
           <Animated.View
             style={[
               {
@@ -145,40 +145,57 @@ function MapSearchBar ({ locations, onSelect }: MapSearchBarProps) {
             ]}
             className="absolute top-full left-0 right-0 bg-white rounded-xl mt-2 shadow-xl elevation-5 max-h-64 z-10"
           >
-            <FlatList
-              data={filteredLocations}
-              keyExtractor={item => item.id}
-              keyboardShouldPersistTaps="handled"
-              showsVerticalScrollIndicator={false}
-              renderItem={({ item, index }) => (
-                <TouchableOpacity
-                  className={`px-4 py-4 ${
-                    index !== filteredLocations.length - 1 ? 'border-b border-neutral-100' : ''
-                  }`}
-                  onPress={() => handleSelectItem(item)}
-                  activeOpacity={0.7}
-                >
-                  <View className="flex-row items-center">
-                    <Ionicons 
-                      name="location-outline" 
-                      size={16} 
-                      color="#00BCD4" 
-                      className="mr-3" 
-                    />
-                    <View className="flex-1">
-                      <Text className="text-base text-neutral-800 font-medium">
-                        {item.nombre}
-                      </Text>
-                      {item.tipo?.nombre && (
-                        <Text className="text-sm text-neutral-500 mt-1">
-                          {item.tipo.nombre}
+            {filteredLocations.length > 0 ? (
+              <FlatList
+                data={filteredLocations}
+                keyExtractor={item => item.id}
+                keyboardShouldPersistTaps="handled"
+                showsVerticalScrollIndicator={false}
+                renderItem={({ item, index }) => (
+                  <TouchableOpacity
+                    className={`px-4 py-4 ${
+                      index !== filteredLocations.length - 1 ? 'border-b border-neutral-100' : ''
+                    }`}
+                    onPress={() => handleSelectItem(item)}
+                    activeOpacity={0.7}
+                  >
+                    <View className="flex-row items-center">
+                      <Ionicons 
+                        name="location-outline" 
+                        size={16} 
+                        color="#00BCD4" 
+                        className="mr-3" 
+                      />
+                      <View className="flex-1">
+                        <Text className="text-base text-neutral-800 font-medium">
+                          {item.nombre}
                         </Text>
-                      )}
+                        {item.tipo?.nombre && (
+                          <Text className="text-sm text-neutral-500 mt-1">
+                            {item.tipo.nombre}
+                          </Text>
+                        )}
+                      </View>
                     </View>
-                  </View>
-                </TouchableOpacity>
-              )}
-            />
+                  </TouchableOpacity>
+                )}
+              />
+            ) : (
+              <View className="px-4 py-6 items-center">
+                <Ionicons 
+                  name="search-outline" 
+                  size={32} 
+                  color="#9CA3AF" 
+                  className="mb-2" 
+                />
+                <Text className="text-neutral-600 font-medium text-base mb-1">
+                  No se encontró el lugar que buscas
+                </Text>
+                <Text className="text-neutral-400 text-sm text-center">
+                  Intenta con otro término de búsqueda
+                </Text>
+              </View>
+            )}
           </Animated.View>
         )}
       </View>

@@ -1,6 +1,9 @@
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
-import { View } from 'react-native';
-import { useSharedValue, withTiming, withSpring } from 'react-native-reanimated';
+import { View, TouchableOpacity } from 'react-native';
+import { useSharedValue } from 'react-native-reanimated';
+import { Ionicons } from '@expo/vector-icons';
+import { usePerformantAnimation } from '@hooks/usePerformantAnimation';
+import { router } from 'expo-router';
 import Map from '@features/home/components/Map';
 import { usePlaces } from '@context/PlacesContext';
 import PlaceInfoCard from '@features/home/components/PlaceInfoCard';
@@ -10,11 +13,8 @@ import * as Location from 'expo-location';
 import type { NavigationRequestV1 } from '../../../types/request/navigation_request_v1';
 import type { Navigation } from '../../../types/navigation';
 import Loading from '@components/Loading';
-import { TouchableOpacity } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
 import ShowPlaceInfoCardBtn from '../components/ShowPlaceInfoBtn';
 
-// Optimización 1: Extraer función fuera del componente
 const getDistanceFromLatLonInMeters = (
   lat1: number, 
   lon1: number, 
@@ -38,9 +38,8 @@ export default function NavigationScreen() {
   const [showPlaceInfo, setShowPlaceInfo] = useState<boolean>(false);
   const [navigation, setNavigation] = useState<Navigation>();
 
-  const cardTranslateY = useSharedValue(300);
-  const cardOpacity = useSharedValue(0);
-  const placeInfoCardOpacity = useSharedValue(1);
+  const { animatedValue: cardTranslateY, animateWithSpring: animateCardTranslateY } = usePerformantAnimation(300);
+  const { animatedValue: cardOpacity, animateWithTiming: animateCardOpacity } = usePerformantAnimation(0);
 
   const { locations, selectedPlace, showRoute, gpsStatus } = usePlaces();
 
@@ -161,19 +160,24 @@ export default function NavigationScreen() {
 
   useEffect(() => {
     if (showNavigationCard) {
-      cardOpacity.value = withTiming(1, { duration: 300 });
-      cardTranslateY.value = withSpring(0, {
+      animateCardOpacity(1, { duration: 300 });
+      animateCardTranslateY(0, {
         damping: 20,
         stiffness: 300,
       });
     }
-  }, [showNavigationCard, cardOpacity, cardTranslateY]);
+  }, [showNavigationCard, animateCardOpacity, animateCardTranslateY]);
 
   const memoizedMap = useMemo(() => (
     <Map 
       locations={locations} 
       selectedPlace={selectedPlace} 
-      showRoute={showRoute} 
+      showRoute={showRoute}
+      onMarkerPress={(place) => {
+        // En navegación, al tocar un marker se puede cambiar el destino
+        // o simplemente mostrar la información
+        setShowPlaceInfo(true);
+      }}
     />
   ), [locations, selectedPlace, showRoute]);
 
@@ -188,6 +192,15 @@ export default function NavigationScreen() {
   
   return (
     <View className="flex-1 bg-white">
+      {/* Botón de volver */}
+      <TouchableOpacity
+        onPress={() => router.back()}
+        className="absolute top-12 left-4 z-50 w-12 h-12 bg-white rounded-full shadow-lg justify-center items-center"
+        style={{ elevation: 5 }}
+      >
+        <Ionicons name="arrow-back" size={24} color="#00BCD4" />
+      </TouchableOpacity>
+
       {showNavigationCard && (
         <NavigationCard navigationData={navigation} />
       )}

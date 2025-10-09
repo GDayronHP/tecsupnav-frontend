@@ -1,10 +1,7 @@
 import React, { useState, useEffect } from "react";
-import { Keyboard, View, Text, TouchableOpacity, Alert, Button } from "react-native";
+import { Keyboard, View, Text, TouchableOpacity, Alert } from "react-native";
 import Animated, {
-  useSharedValue,
   useAnimatedStyle,
-  withSpring,
-  withTiming,
   runOnJS,
   interpolate,
   clamp,
@@ -22,19 +19,17 @@ import EmergencyContactsModal from "../components/EmergencyContactsModal";
 import MapSearchBar from "../components/MapSearchBar";
 import PlaceInfoCard from "../components/PlaceInfoCard";
 import { Image } from "expo-image";
-import * as Speech from "expo-speech";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import PlaceService from "../services/placeService";
 import { router } from "expo-router";
 
 import { usePlaces } from '@context/PlacesContext';
+import { usePerformantAnimation, useButtonScale } from '../../../shared/hooks/usePerformantAnimation';
 
 const LOCATIONS_KEY = 'tecsupnav_locations';
 const SIDEBAR_WIDTH = 320;
 
 export default function HomeScreen() {
-
-  const [showMap, setShowMap] = useState(true);
   const [isOpen, setIsOpen] = useState(false);
   const [isChatBotVisible, setIsChatBotVisible] = useState(false);
   const [showEmergencyModal, setShowEmergencyModal] = useState(false);
@@ -43,8 +38,9 @@ export default function HomeScreen() {
 
   const [loadingLocations, setLoadingLocations] = useState(true);
 
-  const translateX = useSharedValue(-SIDEBAR_WIDTH);
-  const overlayOpacity = useSharedValue(0);
+  // Hooks de animación que respetan el modo de rendimiento
+  const { animatedValue: translateX, animateWithSpring: animateTranslateX, animateWithTiming: animateTranslateXTiming } = usePerformantAnimation(-SIDEBAR_WIDTH);
+  const { animatedValue: overlayOpacity, animateWithTiming: animateOverlayOpacity, animateWithCallback: animateOverlayWithCallback } = usePerformantAnimation(0);
 
   useEffect(() => {
     let isMounted = true;
@@ -74,20 +70,20 @@ export default function HomeScreen() {
 
   const openSidebar = () => {
     setIsOpen(true);
-    translateX.value = withSpring(0, {
+    animateTranslateX(0, {
       damping: 2000,
       stiffness: 200,
     });
-    overlayOpacity.value = withTiming(0.5, { duration: 300 });
+    animateOverlayOpacity(0.5, { duration: 300 });
   };
 
   const closeSidebar = () => {
-    translateX.value = withSpring(-SIDEBAR_WIDTH, {
+    animateTranslateX(-SIDEBAR_WIDTH, {
       damping: 2000,
       stiffness: 200,
     });
-    overlayOpacity.value = withTiming(0, { duration: 300 }, () => {
-      runOnJS(setIsOpen)(false);
+    animateOverlayWithCallback(0, { duration: 300 }, () => {
+      setIsOpen(false);
     });
   };
 
@@ -130,11 +126,11 @@ export default function HomeScreen() {
       } else if (isOpen && shouldClose) {
         runOnJS(closeSidebar)();
       } else if (isOpen) {
-        translateX.value = withSpring(0);
-        overlayOpacity.value = withTiming(0.5);
+        runOnJS(animateTranslateX)(0);
+        runOnJS(animateOverlayOpacity)(0.5);
       } else {
-        translateX.value = withSpring(-SIDEBAR_WIDTH);
-        overlayOpacity.value = withTiming(0);
+        runOnJS(animateTranslateX)(-SIDEBAR_WIDTH);
+        runOnJS(animateOverlayOpacity)(0);
       }
     });
 
@@ -155,8 +151,8 @@ export default function HomeScreen() {
       if (shouldOpen) {
         runOnJS(openSidebar)();
       } else {
-        translateX.value = withSpring(-SIDEBAR_WIDTH);
-        overlayOpacity.value = withTiming(0);
+        runOnJS(animateTranslateX)(-SIDEBAR_WIDTH);
+        runOnJS(animateOverlayOpacity)(0);
       }
     });
 
@@ -263,7 +259,15 @@ export default function HomeScreen() {
             } />
             {showMap && <Map locations={locations} selectedPlace={selectedPlace} showRoute={showRoute} />} */}
 
-            <Map locations={locations} selectedPlace={selectedPlace} showRoute={showRoute} />
+            <Map 
+              locations={locations} 
+              selectedPlace={selectedPlace} 
+              showRoute={showRoute} 
+              onMarkerPress={(place) => {
+                setSelectedPlace(place);
+                setShowPlaceInfo(true);
+              }}
+            />
             {/* Emergency Button */}
             <View className="absolute right-4 bottom-4">
               <TouchableOpacity

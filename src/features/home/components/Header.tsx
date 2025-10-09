@@ -1,7 +1,31 @@
 import { View, Text, TouchableOpacity } from 'react-native'
 import SideBarSearchBar from './SideBarSearchBar';
 import { Ionicons } from '@expo/vector-icons';
-import React from 'react'
+import React from 'react';
+import Animated, { useAnimatedStyle } from 'react-native-reanimated';
+import { useButtonScale } from '../../../shared/hooks/usePerformantAnimation';
+
+// Botón animado para cerrar sidebar
+const AnimatedCloseButton = ({ onPress }: { onPress: () => void }) => {
+  const { scale, scaleDown, scaleUp } = useButtonScale();
+
+  const animatedStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: scale.value }]
+  }));
+
+  return (
+    <TouchableOpacity
+      onPressIn={scaleDown}
+      onPressOut={scaleUp}
+      onPress={onPress}
+      activeOpacity={1}
+    >
+      <Animated.View style={animatedStyle}>
+        <Ionicons name="close" size={24} color="#6b7280" />
+      </Animated.View>
+    </TouchableOpacity>
+  );
+};
 
 type HeaderProps = {
     closeSidebar: () => void;
@@ -22,9 +46,7 @@ export default function Header({ closeSidebar, setSearchText, searchText }: Head
                             </View>
                             <Text className="text-title text-tecsup-text-primary">TecsupNav</Text>
                         </View>
-                        <TouchableOpacity onPress={closeSidebar}>
-                            <Ionicons name="close" size={24} color="#6b7280" />
-                        </TouchableOpacity>
+                        <AnimatedCloseButton onPress={closeSidebar} />
                     </View>
 
                     {/* Student Info Card */}

@@ -4,17 +4,20 @@ import { Stack } from "expo-router";
 
 import '../../styles/global.css';
 import { PlacesContextProvider } from "../shared/context/PlacesContext";
+import { AppSettingsProvider } from "../shared/context/AppSettingsContext";
 
 function RootLayout() {
   return (
     <SafeAreaView style={{ flex: 1 }}>
-      <PlacesContextProvider>
-        <Stack screenOptions={
-          {
-            headerShown: false
-          }
-        } />
-      </PlacesContextProvider>
+      <AppSettingsProvider>
+        <PlacesContextProvider>
+          <Stack screenOptions={
+            {
+              headerShown: false
+            }
+          } />
+        </PlacesContextProvider>
+      </AppSettingsProvider>
     </SafeAreaView>
   );
 }

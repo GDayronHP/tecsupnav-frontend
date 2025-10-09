@@ -44,11 +44,11 @@ export default
             category: ["BROWSABLE", "DEFAULT"]
           }
         ],
-        // config: {
-        //   googleMaps: {
-        //     apiKey: process.env.GOOGLE_MAPS_API_KEY,
-        //   },
-        // }
+        config: {
+          googleMaps: {
+            apiKey: process.env.GOOGLE_MAPS_API_KEY,
+          },
+        }
       },
       web: {
         favicon: ""

@@ -6,8 +6,38 @@ import * as Location from "expo-location";
 import type { Place } from "../../../types/place";
 import { Image } from "expo-image";
 import { Ionicons } from '@expo/vector-icons';
-import Animated, { useSharedValue, withTiming, useAnimatedStyle } from 'react-native-reanimated';
+import Animated, { useAnimatedStyle } from 'react-native-reanimated';
 import Constants from "expo-constants";
+import { usePerformantAnimation, useButtonScale } from '../../../shared/hooks/usePerformantAnimation';
+
+// Componente de botón animado para el mapa
+const AnimatedButton = ({ children, onPress, className, style, activeOpacity }: {
+  children: React.ReactNode;
+  onPress?: () => void;
+  className?: string;
+  style?: any;
+  activeOpacity?: number;
+}) => {
+  const { scale, scaleDown, scaleUp } = useButtonScale();
+
+  const animatedStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: scale.value }]
+  }));
+
+  return (
+    <TouchableOpacity
+      onPressIn={scaleDown}
+      onPressOut={scaleUp}
+      onPress={onPress}
+      activeOpacity={activeOpacity || 1}
+      style={style}
+    >
+      <Animated.View style={[animatedStyle]} className={className}>
+        {children}
+      </Animated.View>
+    </TouchableOpacity>
+  );
+};
 
 const GOOGLE_MAPS_APIKEY = Constants.expoConfig?.extra?.GOOGLE_MAPS_API_KEY;
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
@@ -16,15 +46,18 @@ type MapProps = {
   locations: Place[];
   selectedPlace: Place | null;
   showRoute: boolean;
+  onMarkerPress?: (place: Place) => void;
 };
 
-export default function Map({ locations, selectedPlace, showRoute }: MapProps) {
+export default function Map({ locations, selectedPlace, showRoute, onMarkerPress }: MapProps) {
 
   const mapRef = useRef<MapView>(null);
   const [showImageOverlay, setShowImageOverlay] = useState(false);
   const [showTileOverlay, setShowTileOverlay] = useState(true);
-  const overlayOpacity = useSharedValue(0);
-  const overlayScale = useSharedValue(0.8);
+  
+  // Hooks de animación que respetan el modo de rendimiento
+  const { animatedValue: overlayOpacity, animateWithTiming: animateOpacity } = usePerformantAnimation(0);
+  const { animatedValue: overlayScale, animateWithTiming: animateScale } = usePerformantAnimation(0.8);
 
   const [region, setRegion] = useState({
     latitude: -12.044345,
@@ -44,13 +77,13 @@ export default function Map({ locations, selectedPlace, showRoute }: MapProps) {
 
   const showImageOverlayWithAnimation = () => {
     setShowImageOverlay(true);
-    overlayOpacity.value = withTiming(1, { duration: 300 });
-    overlayScale.value = withTiming(1, { duration: 300 });
+    animateOpacity(1, { duration: 300 });
+    animateScale(1, { duration: 300 });
   };
 
   const hideImageOverlayWithAnimation = () => {
-    overlayOpacity.value = withTiming(0, { duration: 300 });
-    overlayScale.value = withTiming(0.8, { duration: 300 });
+    animateOpacity(0, { duration: 300 });
+    animateScale(0.8, { duration: 300 });
     setTimeout(() => setShowImageOverlay(false), 300);
   };
 
@@ -67,6 +100,8 @@ export default function Map({ locations, selectedPlace, showRoute }: MapProps) {
   const toggleTileOverlay = () => {
     setShowTileOverlay(!showTileOverlay);
   };
+
+
 
   useEffect(() => {
     (async () => {
@@ -97,6 +132,8 @@ export default function Map({ locations, selectedPlace, showRoute }: MapProps) {
       animateToLocation(location);
     }
   }, [selectedPlace]);
+
+
 
   return (
     <View style={{ flex: 1 }}>
@@ -139,9 +176,11 @@ export default function Map({ locations, selectedPlace, showRoute }: MapProps) {
           <Marker
             key={loc.id}
             coordinate={{ latitude: loc.latitud, longitude: loc.longitud }}
-            title={loc.nombre}
-            description={loc.descripcion}
             onPress={() => {
+              // Llamar al callback para abrir PlaceInfoCard
+              onMarkerPress?.(loc);
+              
+              // Mantener funcionalidad de imagen si existe
               if (loc.imagen) {
                 showImageOverlayWithAnimation();
               }
@@ -150,7 +189,7 @@ export default function Map({ locations, selectedPlace, showRoute }: MapProps) {
         ))}
 
         {/* Ruta de navegación */}
-        {userLocation && selectedPlace && showRoute && (
+        {/* {userLocation && selectedPlace && showRoute && (
           <MapViewDirections
             origin={userLocation}
             destination={{
@@ -159,21 +198,12 @@ export default function Map({ locations, selectedPlace, showRoute }: MapProps) {
             }}
             apikey={GOOGLE_MAPS_APIKEY}
             strokeWidth={4}
+            strokeColor="cyan" 
             mode="WALKING"
             optimizeWaypoints={true}
           />
-        )}
+        )} */}
       </MapView>
-
-      {/* Información de coordenadas con más precisión */}
-      <View className="absolute bottom-5 left-5 p-2.5 bg-white/90 rounded-lg shadow-md">
-        <Text className="text-xs text-neutral-700">
-          Lat: {region.latitude.toFixed(6)}
-        </Text>
-        <Text className="text-xs text-neutral-700">
-          Lng: {region.longitude.toFixed(6)}
-        </Text>
-      </View>
 
       {/* Controles del overlay mejorados */}
       {/* <View className="absolute top-15 right-5 space-y-2">
@@ -201,22 +231,24 @@ export default function Map({ locations, selectedPlace, showRoute }: MapProps) {
         onRequestClose={hideImageOverlayWithAnimation}
       >
         <View className="flex-1 justify-center items-center bg-black/80">
-          <TouchableOpacity
+          <AnimatedButton
             className="absolute inset-0"
             activeOpacity={1}
             onPress={hideImageOverlayWithAnimation}
-          />
+          >
+            <View />
+          </AnimatedButton>
 
           <Animated.View 
             style={[overlayAnimatedStyle]}
             className="w-[90%] max-h-[80%] bg-white rounded-2xl overflow-hidden shadow-2xl"
           >
-            <TouchableOpacity
+            <AnimatedButton
               className="absolute top-3 right-3 z-10 bg-black/60 rounded-2xl w-10 h-10 justify-center items-center"
               onPress={hideImageOverlayWithAnimation}
             >
               <Ionicons name="close" size={24} color="#fff" />
-            </TouchableOpacity>
+            </AnimatedButton>
 
             {selectedPlace?.imagen && (
               <Image

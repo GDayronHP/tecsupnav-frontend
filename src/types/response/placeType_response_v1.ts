@@ -1,4 +1,4 @@
-import { PlaceType } from '../features/home/services/placeTypesService';
+import { PlaceType } from '../place';
 
 export interface PlaceTypesResponseV1 {
   success: boolean;

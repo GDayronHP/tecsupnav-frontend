@@ -8,10 +8,12 @@ import {
   Alert,
   StatusBar,
   SafeAreaView,
-  Animated,
   Pressable,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import Animated, { useAnimatedStyle } from 'react-native-reanimated';
+import { usePerformantAnimation } from '../../../shared/hooks/usePerformantAnimation';
+import { useAppSettings } from "@context/AppSettingsContext";
 
 const emergencyContacts = [
   {
@@ -37,20 +39,22 @@ const emergencyContacts = [
 ];
 
 const EmergencyContactsModal = ({ visible, onClose }) => {
-  // Animación de opacidad para el overlay
-  const overlayOpacity = useRef(new Animated.Value(0)).current;
+  // Hook de animación que respeta el modo de rendimiento
+  const { animatedValue: overlayOpacity, animateWithTiming: animateOverlayOpacity } = usePerformantAnimation(0);
+  const { settings } = useAppSettings();
+
+  // Estilo animado para el overlay
+  const overlayAnimatedStyle = useAnimatedStyle(() => ({
+    opacity: overlayOpacity.value,
+  }));
 
   useEffect(() => {
     if (visible) {
-      Animated.timing(overlayOpacity, {
-        toValue: 1,
-        duration: 300,
-        useNativeDriver: true,
-      }).start();
+      animateOverlayOpacity(1, { duration: 300 });
     } else {
-      overlayOpacity.setValue(0);
+      animateOverlayOpacity(0, { duration: 0 });
     }
-  }, [visible]);
+  }, [visible, animateOverlayOpacity]);
 
   const makeCall = (phoneNumber) => {
     const cleanPhone = phoneNumber.replace(/[^\d]/g, "");
@@ -79,24 +83,17 @@ const EmergencyContactsModal = ({ visible, onClose }) => {
     <>
       {/* Overlay animado */}
       <Animated.View
-        style={{
-          position: 'absolute',
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          backgroundColor: 'rgba(0, 0, 0, 0.5)',
-          opacity: overlayOpacity,
-        }}
+        className="absolute inset-0 bg-black/50"
+        style={overlayAnimatedStyle}
       >
         <Pressable onPress={() => { }}>
-          <View style={{ flex: 1 }} />
+          <View className="flex-1" />
         </Pressable>
       </Animated.View>
 
       <Modal
         visible={visible}
-        animationType="fade"
+        animationType={settings.performanceMode ? "none" : "fade"}
         transparent={true}
         presentationStyle="overFullScreen"
         statusBarTranslucent={true}
@@ -104,136 +101,56 @@ const EmergencyContactsModal = ({ visible, onClose }) => {
         style={{ zIndex: 9999 }}
       >
         <StatusBar backgroundColor="rgba(0,0,0,0.5)" barStyle="light-content" />
-        <SafeAreaView
-          style={{ flex: 1, justifyContent: "center", paddingHorizontal: 20 }}
-        >
-          <View
-            style={{
-              backgroundColor: "white",
-              borderRadius: 16,
-              shadowColor: "#000",
-              shadowOffset: { width: 0, height: 4 },
-              shadowOpacity: 0.3,
-              shadowRadius: 8,
-              elevation: 8,
-              maxWidth: 400,
-              alignSelf: "center",
-              width: "100%",
-            }}
-          >
+        <SafeAreaView className="flex-1 justify-center px-5">
+          <View className="bg-white rounded-card shadow-card-hover max-w-[400px] self-center w-full">
             {/* Header */}
-            <View
-              style={{
-                flexDirection: "row",
-                alignItems: "center",
-                justifyContent: "space-between",
-                paddingHorizontal: 16,
-                paddingVertical: 16,
-                borderBottomWidth: 1,
-                borderBottomColor: "#e5e7eb",
-              }}
-            >
-              <View
-                style={{ flexDirection: "row", alignItems: "center", flex: 1 }}
-              >
-                <View
-                  style={{
-                    width: 24,
-                    height: 24,
-                    justifyContent: "center",
-                    alignItems: "center",
-                    marginRight: 12,
-                  }}
-                >
+            <View className="flex-row items-center justify-between px-4 py-4 border-b border-neutral-200">
+              <View className="flex-row items-center flex-1">
+                <View className="w-6 h-6 justify-center items-center mr-3">
                   <Ionicons name="warning" size={20} color="#dc2626" />
                 </View>
-                <Text
-                  style={{
-                    fontSize: 18,
-                    fontWeight: "600",
-                    color: "#dc2626",
-                  }}
-                >
+                <Text className="text-subtitle font-semibold text-error-600">
                   Contactos de Emergencia
                 </Text>
               </View>
 
               <TouchableOpacity
                 onPress={onClose}
-                style={{
-                  width: 32,
-                  height: 32,
-                  justifyContent: "center",
-                  alignItems: "center",
-                }}
+                className="w-8 h-8 justify-center items-center"
               >
                 <Ionicons name="close" size={20} color="#6b7280" />
               </TouchableOpacity>
             </View>
 
             {/* Content */}
-            <View style={{ paddingHorizontal: 16, paddingVertical: 16 }}>
+            <View className="px-4 py-4">
               {emergencyContacts.map((contact, index) => (
                 <View
                   key={contact.id}
-                  style={{
-                    flexDirection: "row",
-                    alignItems: "center",
-                    justifyContent: "space-between",
-                    paddingVertical: 16,
-                    borderBottomWidth:
-                      index !== emergencyContacts.length - 1 ? 1 : 0,
-                    borderBottomColor: "#f3f4f6",
-                  }}
+                  className={`flex-row items-center justify-between py-4 ${
+                    index !== emergencyContacts.length - 1 ? 'border-b border-neutral-100' : ''
+                  }`}
                 >
-                  <View style={{ flex: 1 }}>
-                    <Text
-                      style={{
-                        fontSize: 16,
-                        fontWeight: "600",
-                        color: "#1f2937",
-                        marginBottom: 4,
-                      }}
-                    >
+                  <View className="flex-1">
+                    <Text className="text-body font-semibold text-neutral-800 mb-1">
                       {contact.name}
                     </Text>
-                    <Text
-                      style={{
-                        fontSize: 14,
-                        color: "#6b7280",
-                      }}
-                    >
+                    <Text className="text-label text-neutral-500">
                       {contact.phone}
                     </Text>
                   </View>
 
                   <TouchableOpacity
                     onPress={() => makeCall(contact.phone)}
-                    style={{
-                      flexDirection: "row",
-                      alignItems: "center",
-                      backgroundColor: "rgba(0, 188, 212, 0.1)",
-                      borderWidth: 1,
-                      borderColor: "rgba(0, 188, 212, 0.2)",
-                      paddingHorizontal: 16,
-                      paddingVertical: 8,
-                      borderRadius: 20,
-                      marginLeft: 12,
-                    }}
+                    className="flex-row items-center bg-tecsup-cyan/10 border border-tecsup-cyan/20 px-4 py-2 rounded-full ml-3"
                   >
                     <Ionicons
                       name="call"
                       size={16}
                       color="#00bcd4"
-                      style={{ marginRight: 4 }}
+                      className="mr-1"
                     />
-                    <Text
-                      style={{
-                        color: "#00bcd4",
-                        fontWeight: "500",
-                        fontSize: 14,
-                      }}
-                    >
+                    <Text className="text-tecsup-cyan font-medium text-label ml-1">
                       Llamar
                     </Text>
                   </TouchableOpacity>
