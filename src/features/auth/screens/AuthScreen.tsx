@@ -197,7 +197,7 @@ export default function AuthScreen() {
         <View className="bg-tecsup-card-bg rounded-card p-6 shadow-xl shadow-black/50">
           <View className="items-center mb-8">
             <View className="mb-3">
-              <Image source={logo} contentFit="cover" style={{ width: 24, height: 24 }} />
+              <Image source={logo} contentFit="cover" style={{ width: 52, height: 52 }} />
             </View>
             <Text className="text-title text-tecsup-text-primary font-semibold">
               Acceder a TecsupNav

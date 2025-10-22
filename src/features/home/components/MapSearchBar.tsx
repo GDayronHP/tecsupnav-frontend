@@ -1,26 +1,26 @@
-import React, { useState, useRef } from "react";
-import { 
-  View, 
-  TextInput, 
-  TouchableOpacity, 
-  FlatList, 
-  Text, 
-  Animated, 
-  Easing 
+import { useState, useRef } from "react";
+import {
+  View,
+  TextInput,
+  TouchableOpacity,
+  FlatList,
+  Text,
+  Animated,
+  Easing
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import useFilterData from "../hooks/useFilterData";
-import { Place } from "@types/place";
+import { Place } from "../../../types/place";
 
 interface MapSearchBarProps {
   locations: Place[];
   onSelect: (place: Place) => void;
 }
 
-function MapSearchBar ({ locations, onSelect }: MapSearchBarProps) {
+function MapSearchBar({ locations, onSelect }: MapSearchBarProps) {
   const [searchText, setSearchText] = useState("");
   const [showDropdown, setShowDropdown] = useState(false);
-  
+
   // Animaciones
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const scaleAnim = useRef(new Animated.Value(0.95)).current;
@@ -99,6 +99,7 @@ function MapSearchBar ({ locations, onSelect }: MapSearchBarProps) {
     }
   };
 
+
   const handleSelectItem = (item: Place) => {
     onSelect(item);
     setSearchText(item.nombre);
@@ -121,7 +122,7 @@ function MapSearchBar ({ locations, onSelect }: MapSearchBarProps) {
             onFocus={handleFocus}
           />
           {searchText.length > 0 && (
-            <TouchableOpacity 
+            <TouchableOpacity
               onPress={handleClearSearch}
               className="ml-2 h-6 w-6 justify-center items-center"
               activeOpacity={0.7}
@@ -153,18 +154,17 @@ function MapSearchBar ({ locations, onSelect }: MapSearchBarProps) {
                 showsVerticalScrollIndicator={false}
                 renderItem={({ item, index }) => (
                   <TouchableOpacity
-                    className={`px-4 py-4 ${
-                      index !== filteredLocations.length - 1 ? 'border-b border-neutral-100' : ''
-                    }`}
+                    className={`px-4 py-4 ${index !== filteredLocations.length - 1 ? 'border-b border-neutral-100' : ''
+                      }`}
                     onPress={() => handleSelectItem(item)}
                     activeOpacity={0.7}
                   >
                     <View className="flex-row items-center">
-                      <Ionicons 
-                        name="location-outline" 
-                        size={16} 
-                        color="#00BCD4" 
-                        className="mr-3" 
+                      <Ionicons
+                        name="location-outline"
+                        size={16}
+                        color="#00BCD4"
+                        className="mr-3"
                       />
                       <View className="flex-1">
                         <Text className="text-base text-neutral-800 font-medium">
@@ -182,11 +182,11 @@ function MapSearchBar ({ locations, onSelect }: MapSearchBarProps) {
               />
             ) : (
               <View className="px-4 py-6 items-center">
-                <Ionicons 
-                  name="search-outline" 
-                  size={32} 
-                  color="#9CA3AF" 
-                  className="mb-2" 
+                <Ionicons
+                  name="search-outline"
+                  size={32}
+                  color="#9CA3AF"
+                  className="mb-2"
                 />
                 <Text className="text-neutral-600 font-medium text-base mb-1">
                   No se encontró el lugar que buscas

@@ -5,8 +5,8 @@ import { httpGet } from '@utils/httpClient';
 class PlaceService {
   
   async getAll(): Promise<Place[]> {
-    const data = await httpGet<PlacesResponse>('/places');
-    return data.data;
+    const response = await httpGet<PlacesResponse>('/places');
+    return response.data || [];
   }
 
 }

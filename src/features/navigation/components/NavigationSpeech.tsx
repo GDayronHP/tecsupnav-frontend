@@ -1,0 +1,66 @@
+import React, { useState, useEffect, useRef } from 'react';
+import { TouchableOpacity } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import * as Speech from 'expo-speech';
+
+interface NavigationSpeechProps {
+  currentInstruction?: string;
+}
+
+export default function NavigationSpeech({ currentInstruction }: NavigationSpeechProps) {
+  const [isSpeechEnabled, setIsSpeechEnabled] = useState(false);
+  const lastInstructionRef = useRef<string>('');
+
+  useEffect(() => {
+    if (isSpeechEnabled && currentInstruction && currentInstruction !== lastInstructionRef.current) {
+      lastInstructionRef.current = currentInstruction;
+      try {
+        Speech.speak(currentInstruction, {
+          language: 'es-ES',
+          pitch: 1.0,
+          rate: 0.8,
+        });
+      } catch (error) {
+        console.error('Error with text-to-speech:', error);
+      }
+    }
+  }, [currentInstruction, isSpeechEnabled]);
+
+  const toggleSpeech = async () => {
+    const newSpeechState = !isSpeechEnabled;
+    setIsSpeechEnabled(newSpeechState);
+    
+    if (newSpeechState && currentInstruction) {
+      lastInstructionRef.current = currentInstruction;
+      try {
+        await Speech.speak(currentInstruction, {
+          language: 'es-ES',
+          pitch: 1.0,
+          rate: 0.8,
+        });
+      } catch (error) {
+        console.error('Error with text-to-speech:', error);
+      }
+    } else {
+      Speech.stop();
+    }
+  };
+
+  return (
+    <>
+        <TouchableOpacity
+          onPress={toggleSpeech}
+          className={`w-12 h-12 rounded-full shadow-lg justify-center items-center border-[#666] border-2 ${
+            isSpeechEnabled ? 'bg-primary-500' : 'bg-white'
+          }`}
+          activeOpacity={0.8}
+        >
+          <Ionicons 
+            name={isSpeechEnabled ? 'volume-high' : 'volume-mute'} 
+            size={24} 
+            color={isSpeechEnabled ? 'white' : '#666'} 
+          />
+        </TouchableOpacity>
+    </>
+  );
+}

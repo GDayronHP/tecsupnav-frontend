@@ -5,8 +5,13 @@ import { httpGet } from '@utils/httpClient';
 class SettingsService {
 
   async getMobileDashboard(): Promise<User> {
-    const data = await httpGet<AuthResponseV1>('auth/mobile/dashboard');
-    return data.data;
+    const response = await httpGet<AuthResponseV1>('auth/mobile/dashboard');
+    return response.data || {
+      id: 0,
+      firstName: '',
+      lastName: '',
+      email: '',
+    };
   }
 
 }

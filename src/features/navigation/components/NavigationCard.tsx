@@ -1,37 +1,39 @@
-import { View, Text } from 'react-native'
-import React from 'react'
-import Ionicons from 'react-native-vector-icons/Ionicons'
-import { Navigation } from '@types/navigation';
+import React from 'react';
+import { View, Text } from 'react-native';
+import Ionicons from 'react-native-vector-icons/Ionicons';
+import { NavigationV1 } from '../../../types/navigation';
 
 interface NavigationCardProps {
-    navigationData?: Navigation;
+    navigationData?: NavigationV1;
 }
 
 export default function NavigationCard({ navigationData }: NavigationCardProps) {
+    const destinationName = navigationData?.destination?.nombre;
+    const currentInstruction = navigationData?.instructions?.[0] || 'Sigue recto';
+
     return (
-        <View className="absolute top-12 left-4 right-4 z-10">
-            <View className="bg-white rounded-card p-4 shadow-card-hover border-l-4 border-primary-500">
-                <View className="flex-row items-center mb-1">
-                    <View className="w-6 h-6 bg-primary-500 rounded-full items-center justify-center mr-3">
-                        <Ionicons name="navigate" size={14} color="white" />
-                    </View>
-                    <Text className="text-label text-neutral-900 font-semibold">
-                        Próxima indicación
-                    </Text>
+        <View className="absolute top-2 left-2 right-2 z-40">
+            <View className="bg-white rounded-2xl px-4 py-3 items-center">
+                <View>
+                    {/* Destino (menos prominente) */}
+                    {destinationName && (
+                        <Text className="text-sm text-gray-500 mb-2">
+                            Hacia {destinationName}
+                        </Text>
+                    )}
+                    {/* Instrucción principal */}
                 </View>
-                <Text className="text-body text-neutral-700 ml-9">
-                   {navigationData?.instructions[0] || 'Sin indicación'}
-                </Text>
-                <View className="flex-row items-center mt-2 ml-9">
-                    <View className="bg-neutral-100 px-2 py-1 rounded-base mr-3">
-                        <Text className="text-caption text-neutral-600 font-medium">En {navigationData?.route.distancia}m</Text>
+                <View className='flex flex-row'>
+                    <View className="flex justify-center items-center">
+                        <View className='w-10 h-10 bg-primary-500 rounded-full items-center justify-center mr-3'>
+                            <Ionicons name="navigate" size={20} color="white" />
+                        </View>
                     </View>
-                    <View className="flex-row items-center">
-                        <Ionicons name="checkmark-circle" size={16} color="#00BCD4" />
-                        <Text className="text-caption text-primary-500 font-medium ml-1">{navigationData?.direccion || 'Sin ubicación'}</Text>
-                    </View>
+                    <Text className="text-xl font-bold text-gray-900 flex-1">
+                        {currentInstruction}
+                    </Text>
                 </View>
             </View>
         </View>
-    )
+    );
 }

@@ -21,6 +21,7 @@ interface PlaceInfoCardProps {
   onRoutePress?: () => void;
   realTimeNavigation?: boolean;
   navigationData?: Navigation;
+  modalKey?: number; // Agregar prop para forzar re-renders
 }
 
 const { height: screenHeight } = Dimensions.get('window');
@@ -34,7 +35,8 @@ const PlaceInfoCard: React.FC<PlaceInfoCardProps> = ({
   realTimeNavigation = false,
   navigationData,
 }) => {
-  const [visible, setVisible] = useState(isVisible);
+  const [visible, setVisible] = useState(false);
+  const [isAnimating, setIsAnimating] = useState(false);
 
   // Hooks de animación que respetan el modo de rendimiento
   const { animatedValue: fadeAnim, animateWithTiming: animateFade } = usePerformantAnimation(0);
@@ -50,38 +52,73 @@ const PlaceInfoCard: React.FC<PlaceInfoCardProps> = ({
   }));
 
   useEffect(() => {
-    if (isVisible) {
+    if (isVisible && place) {
+      setIsAnimating(true);
       setVisible(true);
-      // Animar fade y slide simultáneamente
-      animateFade(1, { duration: 300 });
-      animateSlide(0, { duration: 300 });
-    } else if (visible) {
-      // Animar cierre con callback para ocultar renderizado
+      
+      // Resetear animaciones primero
+      fadeAnim.value = 0;
+      slideAnim.value = screenHeight;
+      
+      // Animar entrada con un pequeño delay para asegurar que el componente esté montado
+      const timeout = setTimeout(() => {
+        animateFade(1, { duration: 300 });
+        animateSlide(0, { duration: 300 });
+        setTimeout(() => setIsAnimating(false), 300);
+      }, 50);
+      
+      return () => clearTimeout(timeout);
+      
+    } else if (!isVisible && visible) {
+      setIsAnimating(true);
+      
+      // Animar salida
       animateFade(0, { duration: 250 });
       animateSlideWithCallback(screenHeight, { duration: 300 }, () => {
         setVisible(false);
+        setIsAnimating(false);
       });
     }
-  }, [isVisible, visible, animateFade, animateSlide, animateSlideWithCallback]);
+  }, [isVisible, place?.id]);
 
-  if (!place || !visible) return null;
+  if (!place) {
+    return null;
+  }
+
+  if (!visible && !isAnimating) {
+    return null;
+  }
 
   return (
     <Animated.View
-      className="absolute top-0 left-0 right-0 bottom-0 z-20"
-      style={fadeAnimatedStyle}
+      className="absolute top-0 left-0 right-0 bottom-0"
+      style={[
+        fadeAnimatedStyle,
+        {
+          zIndex: 9999,
+          elevation: 9999,
+        }
+      ]}
+      pointerEvents={visible || isAnimating ? 'auto' : 'none'}
     >
       <TouchableWithoutFeedback onPress={onClose}>
         <View
           className="absolute top-0 left-0 right-0 bottom-0"
           style={{
             backgroundColor: 'rgba(0, 0, 0, 0.5)',
+            zIndex: 1,
           }}
         />
       </TouchableWithoutFeedback>
       <Animated.View
-        className={"absolute bottom-0 left-0 right-0"}
-        style={slideAnimatedStyle}
+        className="absolute bottom-0 left-0 right-0"
+        style={[
+          slideAnimatedStyle,
+          {
+            zIndex: 2,
+            elevation: 10,
+          }
+        ]}
       >
         <View className="bg-white rounded-t-3xl pt-2 pb-0">
           <TouchableOpacity
@@ -117,7 +154,7 @@ const PlaceInfoCard: React.FC<PlaceInfoCardProps> = ({
                   <Ionicons name="close" size={20} color="#6B7280" />
                 </TouchableOpacity>
               </View>
-              <View className="flex-row mb-6">
+              <View className="flex-row">
                 <View className="flex-1 bg-neutral-50 rounded-card p-4 mr-3">
                   <View className="flex-row items-center mb-1">
                     <Ionicons name="time-outline" size={16} color="#6B7280" />
@@ -138,25 +175,10 @@ const PlaceInfoCard: React.FC<PlaceInfoCardProps> = ({
                     </Text>
                   </View>
                   <Text className="text-subtitle text-neutral-900 font-semibold">
-                    {navigationData?.route.distancia + " m" || 'Sin datos'}
+                    {navigationData?.route.distancia.toFixed(0) + " m" || 'Sin datos'}
                   </Text>
                 </View>
               </View>
-              <Pressable
-                className="bg-white border border-neutral-200 rounded-button py-4 items-center active:bg-neutral-50"
-                onPress={() => {
-                  // Acción para ver ruta completa
-                  console.log('Ver ruta completa');
-                }}
-              >
-                <View className="flex-row items-center">
-                  <Ionicons name="map-outline" size={20} color="#374151" />
-                  <Text className="text-body text-neutral-700 font-medium ml-2">
-                    Ver ruta completa
-                  </Text>
-                </View>
-              </Pressable>
-
             </>
 
           ) : (

@@ -50,7 +50,8 @@ export default function PlaceElement({ location, index, filteredLocations, color
         </Text>
         <View className="flex-row items-center">
           <View
-            className={`px-2 py-1 rounded-base mr-2 bg-[${color}]`}
+            className='px-2 py-1 mr-2'
+            style={{ backgroundColor: color, borderRadius: 4 }}
           >
             <Text className="text-xs font-medium">{location.tipo.nombre}</Text>
           </View>

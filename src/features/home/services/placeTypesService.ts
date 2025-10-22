@@ -5,8 +5,8 @@ import { PlaceType } from '@types/place';
 class PlaceTypesService {
   
   async getAll(): Promise<PlaceType[]> {
-    const data = await httpGet<PlaceTypesResponseV1>('/place-types');
-    return data.data;
+    const response = await httpGet<PlaceTypesResponseV1>('/place-types');
+    return response.data || [];
   }
 
 }

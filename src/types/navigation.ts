@@ -20,9 +20,16 @@ export interface Destination {
     piso: number;
 }
 
-export interface Navigation {
+export interface NavigationV1 {
     route: Route;
     destination: Destination;
     instructions: string[];
     direccion?: string;
+}
+
+export interface NavigationV2 {
+    distanciaRestante: number;
+    tiempoRestante: number;
+    llegada: boolean;
+    mensaje: string;
 }

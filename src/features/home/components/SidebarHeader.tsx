@@ -2,30 +2,7 @@ import { View, Text, TouchableOpacity } from 'react-native'
 import SideBarSearchBar from './SideBarSearchBar';
 import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
-import Animated, { useAnimatedStyle } from 'react-native-reanimated';
-import { useButtonScale } from '../../../shared/hooks/usePerformantAnimation';
-
-// Botón animado para cerrar sidebar
-const AnimatedCloseButton = ({ onPress }: { onPress: () => void }) => {
-  const { scale, scaleDown, scaleUp } = useButtonScale();
-
-  const animatedStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: scale.value }]
-  }));
-
-  return (
-    <TouchableOpacity
-      onPressIn={scaleDown}
-      onPressOut={scaleUp}
-      onPress={onPress}
-      activeOpacity={1}
-    >
-      <Animated.View style={animatedStyle}>
-        <Ionicons name="close" size={24} color="#6b7280" />
-      </Animated.View>
-    </TouchableOpacity>
-  );
-};
+import { AnimatedCloseButton } from './AnimatedButtons';
 
 type HeaderProps = {
     closeSidebar: () => void;
@@ -33,7 +10,7 @@ type HeaderProps = {
     searchText: string;
 }
 
-export default function Header({ closeSidebar, setSearchText, searchText }: HeaderProps) {
+export default function SidebarHeader({ closeSidebar, setSearchText, searchText }: HeaderProps) {
     return (
         <>
             <View className="bg-tecsup-surface mb-2">
@@ -57,7 +34,7 @@ export default function Header({ closeSidebar, setSearchText, searchText }: Head
                             </View>
                             <View className="flex-1">
                                 <Text className="text-white text-subtitle font-semibold">Estudiante Tecsup</Text>
-                                <Text className="text-white text-caption text-opacity-80">Primer Ciclo - 2024</Text>
+                                <Text className="text-white text-caption text-opacity-80">Sexto Ciclo - 2025</Text>
                             </View>
                         </View>
 

@@ -15,12 +15,12 @@ export default function PlacesContainer({ filteredLocations = [], setSelectedPla
     const handleLocationView = (location) => {
         setSelectedPlace(location);
         setShowRoute(false);
+        setShowPlaceInfo(true);
         closeSidebar();
     };
 
     const handleLocationRoute = (location) => {
         setSelectedPlace(location);
-        setShowPlaceInfo(true);
         setShowRoute(true);
         closeSidebar();
     }

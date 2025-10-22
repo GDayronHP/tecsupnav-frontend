@@ -1,7 +1,6 @@
 import { View, TouchableOpacity } from 'react-native'
 import { TextInput } from 'react-native-gesture-handler';
 import { Ionicons } from '@expo/vector-icons';
-import { useState } from 'react';
 import React from 'react';
 import Animated, { useAnimatedStyle } from 'react-native-reanimated';
 import { useButtonScale } from '../../../shared/hooks/usePerformantAnimation';

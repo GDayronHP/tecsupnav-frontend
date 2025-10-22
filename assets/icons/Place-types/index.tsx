@@ -1,0 +1,12 @@
+export { Wc } from './wc';
+export { Classroom } from './classroom';
+export { Theater } from './theater';
+export { Library } from './library';
+export { Restaurant } from './restaurant';
+export { Door } from './door';
+export { PrecissionManufacturing } from './precission_manufacturing';
+export { Science } from './science';
+export { Domain } from './domain';
+export { Office } from './office';
+export { Apartment } from './apartment';
+export { SportsSoccer } from './sports_soccer';

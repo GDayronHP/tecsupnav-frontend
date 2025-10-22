@@ -1,7 +1,8 @@
-import { Navigation } from '../navigation';
+import { NavigationV1 } from '../navigation';
 
-export interface NavigationResponse {
+export interface NavigationResponseV1 {
     success: boolean;
     message: string;
-    data: Navigation;
+    data: NavigationV1;
+    statusCode?: number;
 }

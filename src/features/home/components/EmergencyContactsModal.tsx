@@ -14,6 +14,7 @@ import { Ionicons } from "@expo/vector-icons";
 import Animated, { useAnimatedStyle } from 'react-native-reanimated';
 import { usePerformantAnimation } from '../../../shared/hooks/usePerformantAnimation';
 import { useAppSettings } from "@context/AppSettingsContext";
+import Backdrop from "@components/Backdrop";
 
 const emergencyContacts = [
   {
@@ -82,14 +83,7 @@ const EmergencyContactsModal = ({ visible, onClose }) => {
   return (
     <>
       {/* Overlay animado */}
-      <Animated.View
-        className="absolute inset-0 bg-black/50"
-        style={overlayAnimatedStyle}
-      >
-        <Pressable onPress={() => { }}>
-          <View className="flex-1" />
-        </Pressable>
-      </Animated.View>
+      <Backdrop />
 
       <Modal
         visible={visible}

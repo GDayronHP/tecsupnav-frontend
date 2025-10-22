@@ -57,8 +57,15 @@ export default
         "expo-router",
         "expo-secure-store",
         // "react-native-maps",
-      ]
-      ,
+        [
+          "expo-speech-recognition",
+          {
+            "microphonePermission": "Allow $(PRODUCT_NAME) to use the microphone.",
+            "speechRecognitionPermission": "Allow $(PRODUCT_NAME) to use speech recognition.",
+            "androidSpeechServicePackages": ["com.google.android.googlequicksearchbox"]
+          }
+        ]
+      ],
       extra: {
         router: {},
         eas: {
