@@ -25,7 +25,6 @@ export default function Map({ locations, selectedPlace, showRoute, onMarkerPress
   const {
     mapRef,
     userLocation,
-    showImageOverlayWithAnimation,
     handleRegionChangeComplete,
     handleMarkerPress,
     memoizedLocations 
@@ -57,7 +56,6 @@ export default function Map({ locations, selectedPlace, showRoute, onMarkerPress
             place={loc}
             isSelected={selectedPlace?.id === loc.id}
             onPress={handleMarkerPress}
-            onImagePress={showImageOverlayWithAnimation}
             navigationMode={navigationMode}
           />
         ))}

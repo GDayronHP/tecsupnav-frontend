@@ -8,11 +8,10 @@ interface OptimizedMarkerProps {
   place: Place;
   isSelected: boolean;
   onPress: (place: Place) => void;
-  onImagePress?: () => void;
   navigationMode?: boolean;
 }
 
-const OptimizedMarker = memo(({ place, isSelected, onPress, onImagePress, navigationMode }: OptimizedMarkerProps) => {
+const OptimizedMarker = memo(({ place, isSelected, onPress, navigationMode }: OptimizedMarkerProps) => {
   const handlePress = () => {
     if (navigationMode) {
       console.log("⚠️ OptimizedMarker - Press blocked in navigation mode");
@@ -21,9 +20,7 @@ const OptimizedMarker = memo(({ place, isSelected, onPress, onImagePress, naviga
     
     console.log("🔍 OptimizedMarker - Marker pressed:", place.nombre);
     onPress(place);
-    if (place.imagen && onImagePress) {
-      onImagePress();
-    }
+
   };
 
   const color = place.tipo.color || '#4F6DF5';

@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity, Modal, Alert, Button } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { View, TouchableOpacity, Alert} from 'react-native';
 import { router } from 'expo-router';
 import Animated, { useAnimatedStyle } from 'react-native-reanimated';
 import { usePerformantAnimation, useButtonScale } from '../../../shared/hooks/usePerformantAnimation';
@@ -9,6 +8,7 @@ import { useAppSettings } from '../../../shared/context/AppSettingsContext';
 import SettingsModalBody from './SettingsModalBody';
 import SettingsModalHeader from './SettingsModalHeader';
 import Backdrop from '@components/Backdrop';
+import authService from '@features/auth/services/authService';
 
 interface SettingsModalProps {
   visible: boolean;
@@ -49,7 +49,7 @@ export default function SettingsModal({ visible, onClose }: SettingsModalProps) 
     transform: [{ translateY: translateY.value }],
   }));
 
-  const handleLogout = () => {
+  const handleLogout = async() => {
     Alert.alert(
       "Cerrar sesión",
       "¿Estás seguro de que deseas cerrar sesión?",
@@ -61,8 +61,9 @@ export default function SettingsModal({ visible, onClose }: SettingsModalProps) 
         {
           text: "Cerrar sesión",
           style: "destructive",
-          onPress: () => {
+          onPress: async () => {
             onClose();
+            await authService.logout();
             router.push('/auth');
           },
         },

@@ -5,7 +5,7 @@ import { httpPost } from '@utils/httpClient';
 class AiAssistantService {
 
   async process({ userId, query, currentLat, currentLng, useAI, conversationId }: AiAssistantRequestV1): Promise<AiAssistantServiceResponseV1> {
-    const response = await httpPost<AiAssistantServiceResponseV1>('/ai-assistant/process', { userId, query, currentLat, currentLng, useAI: useAI ?? false, conversationId });
+    const response = await httpPost<AiAssistantServiceResponseV1>('/ai-assistant/process', { userId, query, currentLat, currentLng, useAI: useAI ?? true, conversationId });
     return response || { success: false, data: null, userId: '' };
   }
 

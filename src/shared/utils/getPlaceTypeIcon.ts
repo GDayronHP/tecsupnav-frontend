@@ -50,9 +50,9 @@ const typeNameMapping: Record<string, string> = {
 };
 
 export default function getPlaceTypeIcon(type?: string, props?: SvgProps) {
-  // Primero busca en el mapeo de nombres en español
+  
   const mappedType = type ? typeNameMapping[type] : undefined;
-  // Luego busca el icono usando la clave mapeada o la original
+
   const IconComponent = (mappedType && placeIcons[mappedType]) || 
                         (type && placeIcons[type]) || 
                         Apartment;
