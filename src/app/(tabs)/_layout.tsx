@@ -31,7 +31,9 @@ export default function TabLayout() {
     setPendingChatQuery,
     handleVoiceCancel,
     handleVoiceConfirm,
-    handleVoiceAiResponse
+    handleVoiceAiResponse,
+    closeChatBot,
+    navigate
   } = useTabLayout();
   return (
     <>
@@ -139,14 +141,8 @@ export default function TabLayout() {
       <ChatBot
         isVisible={showChatBot}
         initialQuery={pendingChatQuery}
-        onClose={() => {
-          setShowChatBot(false);
-          setPendingChatQuery("");
-        }}
-        onNavigate={() => {
-          setShowChatBot(false);
-          setPendingChatQuery("");
-        }}
+        onClose={closeChatBot}
+        onNavigate={navigate}
       />
     </>
   );

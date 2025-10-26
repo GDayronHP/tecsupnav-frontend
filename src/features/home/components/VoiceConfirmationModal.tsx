@@ -2,9 +2,7 @@ import React, { useEffect } from 'react';
 import { View, Text, TouchableOpacity, Modal, ScrollView } from 'react-native';
 import { Image } from "expo-image";
 import { Ionicons } from "@expo/vector-icons";
-import { Option } from '../../../types/aiAssistant';
 import { Place } from '../../../types/place';
-import { AiAssistantServiceResponseV1 } from '../../../types/response/aiAssistant_response_v1';
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
@@ -14,6 +12,7 @@ import Animated, {
   Easing
 } from 'react-native-reanimated';
 import Backdrop from '@components/Backdrop';
+import { AiAssistantServiceResponseV2 } from '@types/response/aiAssistant_response_v2';
 
 interface VoiceConfirmationModalProps {
   visible: boolean;
@@ -24,7 +23,7 @@ interface VoiceConfirmationModalProps {
   onConfirm: (place: Place) => void;
   onAiResponse: (transcription: string) => void;
   startListening?: () => Promise<void>;
-  aiResponse?: AiAssistantServiceResponseV1;
+  aiResponse?: AiAssistantServiceResponseV2;
 }
 
 const VoiceConfirmationModal: React.FC<VoiceConfirmationModalProps> = ({
@@ -170,7 +169,7 @@ const VoiceConfirmationModal: React.FC<VoiceConfirmationModalProps> = ({
         {!isListening && aiResponse && (
           <View className="bg-white rounded-card shadow-card-hover w-full max-w-md p-6">
             {/* Mostrar opciones si existen */}
-            {Array.isArray(aiResponse.data.options) && aiResponse.data.options.length > 0 ? (
+            {Array.isArray(aiResponse.data.data.places) && aiResponse.data.data.places.length > 0 ? (
               <>
                 <Text className="text-title text-tecsup-text-primary text-center mb-4">
                   Opciones encontradas
@@ -213,48 +212,27 @@ const VoiceConfirmationModal: React.FC<VoiceConfirmationModalProps> = ({
               </>
             ) : null}
 
-            {/* Si no hay opciones, mostrar solo el resultado principal si existe y la acción es 'navigate' */}
-            {!aiResponse.data.options || aiResponse.data.options.length === 0 ? (
-              aiResponse.data.action === "navigate" && aiResponse.data.data?.places?.length > 0 ? (
-                <>
-                  <View className="items-center mb-6">
-                    <Image
-                      source={
-                        aiResponse.data.data?.places?.[0]?.imagen
-                          ? { uri: aiResponse.data.data.places[0].imagen }
-                          : require('@assets/images/placeholder-image.webp')
-                      }
-                      contentFit='cover'
-                      className="w-32 h-32 rounded-2xl"
-                    />
-                  </View>
-                  <Text className="text-title text-tecsup-text-primary text-center mb-3">
-                    {aiResponse.data.data?.places?.[0]?.nombre}
-                  </Text>
-                  <Text className="text-body text-tecsup-text-secondary text-center mb-6">
-                    {aiResponse.data.data?.places?.[0]?.descripcion}
-                  </Text>
-                  <View className="flex-row gap-3">
-                    <TouchableOpacity
-                      onPress={onCancel}
-                      className="flex-1 flex-row items-center justify-center gap-2 px-6 py-3 bg-white border-2 border-neutral-200 rounded-button shadow-button"
-                      activeOpacity={0.7}
-                    >
-                      <Ionicons name="close" size={20} color="#1e293b" />
-                      <Text className="text-label text-tecsup-text-primary">Cancelar</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity
-                      onPress={() => onConfirm(aiResponse.data.data?.places?.[0])}
-                      className="flex-1 flex-row items-center justify-center gap-2 px-6 py-3 bg-primary-500 rounded-button shadow-button"
-                      activeOpacity={0.7}
-                    >
-                      <Ionicons name="navigate" size={20} color="#ffffff" />
-                      <Text className="text-label text-white">Ir ahí</Text>
-                    </TouchableOpacity>
-                  </View>
-                </>
-              ) : null
-            ) : null}
+            {/* Mensaje cuando no hay lugares para mostrar */}
+            {(!aiResponse.data.data?.places || aiResponse.data.data.places.length === 0) && (
+              <View className="items-center py-8">
+                <View className="w-16 h-16 rounded-full bg-gray-100 items-center justify-center mb-4">
+                  <Ionicons name="search-outline" size={32} color="#6B7280" />
+                </View>
+                <Text className="text-title text-tecsup-text-primary text-center mb-2">
+                  Sin resultados
+                </Text>
+                <Text className="text-body text-tecsup-text-secondary text-center mb-6">
+                  No encontré lugares relacionados con tu consulta
+                </Text>
+                <TouchableOpacity
+                  onPress={onCancel}
+                  className="px-6 py-3 bg-primary-500 rounded-button shadow-button"
+                  activeOpacity={0.7}
+                >
+                  <Text className="text-label text-white">Cerrar</Text>
+                </TouchableOpacity>
+              </View>
+            )}
           </View>
         )}
       </View>

@@ -11,6 +11,7 @@ import useMap from "../hooks/useMap";
 import OptimizedMarker from "./OptimizedMarker";
 
 const GOOGLE_MAPS_APIKEY = Constants.expoConfig?.extra?.GOOGLE_MAPS_API_KEY;
+const GOOGLE_MAPS_ID = Constants.expoConfig?.extra?.GOOGLE_MAPS_ID;
 
 type MapProps = {
   locations: Place[];
@@ -27,12 +28,13 @@ export default function Map({ locations, selectedPlace, showRoute, onMarkerPress
     userLocation,
     handleRegionChangeComplete,
     handleMarkerPress,
-    memoizedLocations 
+    memoizedLocations
   } = useMap(selectedPlace, showRoute, onMarkerPress, navigationMode, locations);
 
   return (
     <View style={{ flex: 1 }}>
       <MapView
+        googleMapId={GOOGLE_MAPS_ID}
         ref={mapRef}
         provider={PROVIDER_GOOGLE}
         style={{ flex: 1 }}
@@ -40,7 +42,7 @@ export default function Map({ locations, selectedPlace, showRoute, onMarkerPress
           center: { latitude: -12.04447, longitude: -76.95278 },
           pitch: 0,
           heading: -24,
-          zoom: 17
+          zoom: 18
         }}
         onRegionChangeComplete={handleRegionChangeComplete}
         showsUserLocation={true}
@@ -48,6 +50,8 @@ export default function Map({ locations, selectedPlace, showRoute, onMarkerPress
         mapType="hybrid"
         maxZoomLevel={20}
         minZoomLevel={15}
+        rotateEnabled={false}
+        pitchEnabled={false}
       >
 
         {memoizedLocations?.map((loc) => (

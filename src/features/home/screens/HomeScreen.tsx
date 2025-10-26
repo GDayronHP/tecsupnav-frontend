@@ -14,7 +14,6 @@ import usePlaceNavigation from "../hooks/usePlaceNavigation";
 
 // Components
 import Sidebar from "../components/SideBar";
-import ChatBot from "../components/ChatBot";
 import EmergencyContactsModal from "../components/EmergencyContactsModal";
 import PlaceInfoCard from "../components/PlaceInfoCard";
 import HomeHeader from "../components/HomeHeader";
@@ -24,6 +23,7 @@ import MapContainer from "../components/MapContainer";
 // Context
 import { usePlaces } from "@context/PlacesContext";
 import Backdrop from "@components/Backdrop";
+import { useChatbot } from "@context/ChatbotContext";
 
 // Constants
 const SIDEBAR_WIDTH = 320;
@@ -31,10 +31,7 @@ const SIDEBAR_WIDTH = 320;
 export default function HomeScreen() {
 
   // ChatBot Modal State
-  const [isChatBotVisible, setIsChatBotVisible] = useState(false);
-
-  const openChatBot = useCallback(() => setIsChatBotVisible(true), []);
-  const closeChatBot = useCallback(() => setIsChatBotVisible(false), []);
+  const { openChatBot} = useChatbot();
 
   // Map & Places State
   const { selectedPlace, showPlaceInfo, setShowPlaceInfo, showRoute, setSelectedPlace, setShowRoute } = usePlaces();
@@ -115,12 +112,6 @@ export default function HomeScreen() {
       </GestureHandlerRootView>
 
       {/* Modals */}
-      <ChatBot
-        isVisible={isChatBotVisible}
-        onClose={closeChatBot}
-        onNavigate={startNavigationMode}
-      />
-
       <EmergencyContactsModal
         visible={showEmergencyModal}
         onClose={closeEmergencyModal}
