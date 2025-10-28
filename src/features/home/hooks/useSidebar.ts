@@ -1,156 +1,85 @@
-import { useState, useCallback, useEffect, useMemo, useDeferredValue } from 'react'
-import { Alert } from 'react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-
+import { useState, useCallback, useMemo, useDeferredValue } from 'react'
+import { InteractionManager } from 'react-native';
 import { usePerformantAnimation } from '@hooks/usePerformantAnimation';
 import { Gesture } from 'react-native-gesture-handler';
 import useFilterData from './useFilterData';
-import { usePlaceTypesService } from '../services/placeTypesService';
-import { PlaceType, Place } from '../../../types/place';
+import { Place } from '../../../types/place';
+import { useSidebarContext } from '../context/SidebarContext';
 
 import {
     useAnimatedStyle,
     runOnJS,
     interpolate,
     clamp,
+    withSpring,
+    withTiming,
 } from "react-native-reanimated";
 
 const SIDEBAR_WIDTH = 320;
-
-// Constants for AsyncStorage keys
-const FILTERS_KEY = 'tecsupnav_filters';
-const SELECTED_FILTER_KEY = 'tecsupnav_selected_filter';
-const SEARCH_TEXT_KEY = 'tecsupnav_search_text';
 
 interface UseSidebarProps {
   locations: Place[];
 }
 
 export function useSidebar({ locations }: UseSidebarProps) {
+    console.log('🏗️ useSidebar hook called with', locations.length, 'locations');
 
-    // Animation State
+    // Animation State - this is the only local state we need
     const [isOpen, setIsOpen] = useState(false);
 
-    // Sidebar Logic State
-    const [selectedFilter, setSelectedFilter] = useState('Todos');
-    const [searchText, setSearchText] = useState('');
-    const [filters, setFilters] = useState<PlaceType[]>([]);
-    const [loadingFilters, setLoadingFilters] = useState(false);
+    // Get all filter data from context (no local state needed)
+    const {
+        filters,
+        isFiltersLoaded,
+        loadingFilters,
+        selectedFilter,
+        searchText,
+        setSelectedFilter: setSelectedFilterContext,
+        setSearchText: setSearchTextContext,
+    } = useSidebarContext();
 
-    // Load filters and cached data
-    useEffect(() => {
-        let isMounted = true;
-        let filterCache: PlaceType[] = [];
-
-        const loadCachedData = async () => {
-            try {
-                const [savedFilters, savedSelectedFilter, savedSearchText] = await Promise.all([
-                    AsyncStorage.getItem(FILTERS_KEY),
-                    AsyncStorage.getItem(SELECTED_FILTER_KEY),
-                    AsyncStorage.getItem(SEARCH_TEXT_KEY),
-                ]);
-
-                if (!isMounted) return;
-
-                if (savedFilters) {
-                    filterCache = JSON.parse(savedFilters);
-                    setFilters(filterCache);
-                }
-
-                // Only restore filter if it exists and is not empty
-                if (savedSelectedFilter && savedSelectedFilter.trim() !== '' && savedSelectedFilter !== 'Todos') {
-                    setSelectedFilter(savedSelectedFilter);
-                }
-                
-                // Only restore search text if it exists and is not empty
-                if (savedSearchText && savedSearchText.trim() !== '') {
-                    setSearchText(savedSearchText);
-                }
-
-                return filterCache;
-            } catch (error) {
-                console.warn('Error loading from AsyncStorage:', error);
-                return [];
-            }
-        };
-
-        const fetchFreshFilters = async (cachedFilters: PlaceType[]) => {
-            if (cachedFilters.length === 0) {
-                setLoadingFilters(true);
-            }
-
-            try {
-                const apiFilters = await usePlaceTypesService().getAll();
-                
-                if (!isMounted) return;
-
-                if (Array.isArray(apiFilters) && apiFilters.length > 0) {
-                    const hasChanged = JSON.stringify(cachedFilters) !== JSON.stringify(apiFilters);
-                    
-                    if (hasChanged) {
-                        setFilters(apiFilters);
-                        await AsyncStorage.setItem(FILTERS_KEY, JSON.stringify(apiFilters));
-                    }
-                }
-            } catch (error) {
-                console.error('Error fetching filters:', error);
-
-                if (cachedFilters.length === 0) {
-                    Alert.alert('Error', 'No se pudieron cargar los filtros.');
-                }
-            } finally {
-                if (isMounted) setLoadingFilters(false);
-            }
-        };
-
-        loadCachedData().then(fetchFreshFilters);
-
-        return () => {
-            isMounted = false;
-        };
-    }, []);
-
-    // Save selected filter to AsyncStorage
-    useEffect(() => {
-        if (selectedFilter === 'Todos') {
-            AsyncStorage.removeItem(SELECTED_FILTER_KEY).catch(console.warn);
-        } else {
-            AsyncStorage.setItem(SELECTED_FILTER_KEY, selectedFilter).catch(console.warn);
-        }
-    }, [selectedFilter]);
-
-    // Save search text to AsyncStorage
-    useEffect(() => {
-        if (searchText.trim()) {
-            AsyncStorage.setItem(SEARCH_TEXT_KEY, searchText).catch(console.warn);
-        } else {
-            AsyncStorage.removeItem(SEARCH_TEXT_KEY).catch(console.warn);
-        }
-    }, [searchText]);
-
-    // Filter logic
+    // Highly optimized filter logic with deferred processing
     const deferredSearchText = useDeferredValue(searchText);
     const textFilteredLocations = useFilterData(locations, deferredSearchText);
 
     const filteredLocations = useMemo(() => {
-        if (selectedFilter === 'Todos') return textFilteredLocations;
+        // Don't process during animations for better performance
+        const start = Date.now();
         
+        if (selectedFilter === 'Todos') {
+            console.log('⚡ Filter time (no filter):', Date.now() - start, 'ms');
+            return textFilteredLocations;
+        }
+        
+        // Cache the lowercase filter to avoid repeated calls
         const lowerFilter = selectedFilter.toLowerCase();
-        return textFilteredLocations.filter(
-            (location) => location.tipo?.nombre?.toLowerCase() === lowerFilter
-        );
+        const result = textFilteredLocations.filter((location) => {
+            // Optimized comparison with early returns
+            const tipoNombre = location.tipo?.nombre;
+            return tipoNombre && tipoNombre.toLowerCase() === lowerFilter;
+        });
+        
+        const elapsed = Date.now() - start;
+        if (elapsed > 5) { // Only log if it takes more than 5ms
+            console.log('⚡ Filter time (with filter):', elapsed, 'ms, results:', result.length);
+        }
+        return result;
     }, [textFilteredLocations, selectedFilter]);
 
-    // Handlers
+    // Optimized handlers with performance tracking
     const selectedFilterHandler = useCallback((filterName: string) => {
-        setSelectedFilter((prev) => (prev === filterName ? 'Todos' : filterName));
-    }, []);
+        console.log('🎯 Filter selected:', filterName);
+        const start = Date.now();
+        setSelectedFilterContext(filterName);
+        console.log('⚡ Filter change time:', Date.now() - start, 'ms');
+    }, [setSelectedFilterContext]);
 
     const handleSearchChange = useCallback((text: string) => {
-        setSearchText(text);
-    }, []);
+        console.log('🔍 Search text changed:', text.length, 'chars');
+        setSearchTextContext(text);
+    }, [setSearchTextContext]);
 
-    // Animations
+    // High-performance animations using native driver
     const {
         animatedValue: translateX,
         animateWithSpring: animateTranslateX
@@ -163,38 +92,70 @@ export function useSidebar({ locations }: UseSidebarProps) {
     } = usePerformantAnimation(0);
 
 
-    // Sidebar animation handlers   
+    // Sidebar animation handlers with performance tracking
     const openSidebar = useCallback(() => {
+        console.log('🚪 Opening sidebar... filters loaded:', isFiltersLoaded);
+        const start = Date.now();
+        
+        // Set open state immediately for instant response
         setIsOpen(true);
-        animateTranslateX(0, {
-            damping: 2000,
-            stiffness: 200,
+        
+        // Use aggressive spring settings for snappy performance
+        const animationConfig = {
+            damping: 3000,
+            stiffness: 400,
+            mass: 1,
+            restSpeedThreshold: 0.001,
+            restDisplacementThreshold: 0.001,
+        };
+        
+        // Start animations immediately, don't wait for data loading
+        animateTranslateX(0, animationConfig);
+        animateOverlayOpacity(0.5, { 
+            duration: 150,
         });
-        animateOverlayOpacity(0.5, { duration: 300 });
-    }, [animateTranslateX, animateOverlayOpacity]);
+        
+        // Track animation start time on next frame
+        requestAnimationFrame(() => {
+            console.log('⚡ Sidebar open animation started in:', Date.now() - start, 'ms');
+        });
+    }, [animateTranslateX, animateOverlayOpacity, isFiltersLoaded]);
 
     const closeSidebar = useCallback(() => {
+        console.log('🚪 Closing sidebar...');
+        const start = Date.now();
+        
+        // Fast close animation
         animateTranslateX(-SIDEBAR_WIDTH, {
-            damping: 2000,
-            stiffness: 200,
+            damping: 3500,
+            stiffness: 500,
+            mass: 1,
+            restSpeedThreshold: 0.001,
+            restDisplacementThreshold: 0.001,
         });
-        animateOverlayWithCallback(0, { duration: 300 }, () => {
+        
+        animateOverlayWithCallback(0, { duration: 120 }, () => {
             setIsOpen(false);
+            console.log('⚡ Sidebar closed in:', Date.now() - start, 'ms');
         });
     }, [animateTranslateX, animateOverlayWithCallback]);
 
-    // Pan gesture
+    // Optimized pan gesture with better performance
     const panGesture = Gesture.Pan()
         .enabled(true)
+        .shouldCancelWhenOutside(false)
         .onUpdate((event) => {
+            'worklet';
             const { translationX } = event;
+            
             if (isOpen) {
                 const newTranslateX = clamp(translationX, -SIDEBAR_WIDTH, 0);
                 translateX.value = newTranslateX;
                 overlayOpacity.value = interpolate(
                     newTranslateX,
                     [-SIDEBAR_WIDTH, 0],
-                    [0, 0.5]
+                    [0, 0.5],
+                    'clamp'
                 );
             } else {
                 const newTranslateX = clamp(
@@ -206,25 +167,29 @@ export function useSidebar({ locations }: UseSidebarProps) {
                 overlayOpacity.value = interpolate(
                     newTranslateX,
                     [-SIDEBAR_WIDTH, 0],
-                    [0, 0.5]
+                    [0, 0.5],
+                    'clamp'
                 );
             }
         })
         .onEnd((event) => {
+            'worklet';
             const { translationX, velocityX } = event;
-            const shouldOpen = translationX > SIDEBAR_WIDTH / 3 || velocityX > 500;
-            const shouldClose = translationX < -SIDEBAR_WIDTH / 3 || velocityX < -500;
+            const shouldOpen = translationX > SIDEBAR_WIDTH / 3 || velocityX > 300;
+            const shouldClose = translationX < -SIDEBAR_WIDTH / 3 || velocityX < -300;
 
             if (!isOpen && shouldOpen) {
                 runOnJS(openSidebar)();
             } else if (isOpen && shouldClose) {
                 runOnJS(closeSidebar)();
             } else if (isOpen) {
-                runOnJS(animateTranslateX)(0);
-                runOnJS(animateOverlayOpacity)(0.5);
+                // Fast spring back to open position
+                translateX.value = withSpring(0, { damping: 3000, stiffness: 400 });
+                overlayOpacity.value = withTiming(0.5, { duration: 100 });
             } else {
-                runOnJS(animateTranslateX)(-SIDEBAR_WIDTH);
-                runOnJS(animateOverlayOpacity)(0);
+                // Fast spring back to closed position
+                translateX.value = withSpring(-SIDEBAR_WIDTH, { damping: 3000, stiffness: 400 });
+                overlayOpacity.value = withTiming(0, { duration: 100 });
             }
         });
 
@@ -279,5 +244,8 @@ export function useSidebar({ locations }: UseSidebarProps) {
         filteredLocations,
         selectedFilterHandler,
         handleSearchChange,
+        
+        // Performance
+        isPreloaded: isFiltersLoaded,
     }
 }

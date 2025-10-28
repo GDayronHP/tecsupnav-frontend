@@ -1,11 +1,10 @@
-import { View, Text, TouchableOpacity } from 'react-native'
-
+import { View, Text, TouchableOpacity, Image } from 'react-native'
 import Switch from '@components/Switch';
-
 import { Ionicons } from '@expo/vector-icons';
-
 import { router } from 'expo-router';
 import AnimatedButton from '@components/AnimatedButton';
+
+import { useUser } from '@context/UserContext';
 
 interface SettingsModalBodyProps {
   settings: {
@@ -20,6 +19,9 @@ interface SettingsModalBodyProps {
 }
 
 export default function SettingsModalBody({ settings, updateSetting, onClose, handleLogout }: SettingsModalBodyProps) {
+
+  const { userData } = useUser();
+
   return (
     <View className="px-4 pb-6">
       <View className="mb-6">
@@ -27,11 +29,21 @@ export default function SettingsModalBody({ settings, updateSetting, onClose, ha
         <View className="bg-primary-50 rounded-xl p-4 flex-row items-center justify-between h-fit">
           <View className="flex-row items-center gap-3">
             <View className="w-12 h-12 bg-primary-500 rounded-full justify-center items-center">
-              <Ionicons name="person-circle" size={32} color="white" />
+              {userData?.avatar ? (
+                <>
+                  <Image
+                    source={{ uri: userData.avatar }}
+                    className="w-full h-full rounded-full"
+                    resizeMode="cover"
+                  />
+                </>
+              ) : (
+                <Ionicons name="person" size={40} color="white" />
+              )}
             </View>
             <View>
               <Text className="text-sm font-semibold text-neutral-900">Estudiante Tecsup</Text>
-              <Text className="text-xs text-neutral-500">Joseph Huayra Puma</Text>
+              <Text className="text-xs text-neutral-500">{userData.nombreCompleto}</Text>
             </View>
           </View>
           <TouchableOpacity

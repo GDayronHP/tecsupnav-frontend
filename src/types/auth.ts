@@ -20,6 +20,17 @@ export interface UserV2 {
   lastName: string;
 }
 
+export interface UserV3 {
+  id: string,
+  email: string,
+  nombreCompleto: string,
+  firstName: string,
+  lastName: string,
+  avatar: string | null,
+  role: "ADMIN" | "STUDENT",
+  createdAt: string,
+}
+
 export interface AuthResponseV1Data {
   user: User;
   access_token: string;

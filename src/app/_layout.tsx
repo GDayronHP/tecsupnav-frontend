@@ -12,13 +12,13 @@ function RootLayout() {
     <SafeAreaView style={{ flex: 1 }}>
       <AppSettingsProvider>
         <PlacesContextProvider>
-          <ChatbotContextProvider>
-            <Stack screenOptions={
-              {
-                headerShown: false
-              }
-            } />
-          </ChatbotContextProvider>
+            <ChatbotContextProvider>
+              <Stack screenOptions={
+                {
+                  headerShown: false
+                }
+              } />
+            </ChatbotContextProvider>
         </PlacesContextProvider>
       </AppSettingsProvider>
     </SafeAreaView>

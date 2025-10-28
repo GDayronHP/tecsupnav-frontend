@@ -1,19 +1,12 @@
-import { User } from '@types/auth';
-import { AuthResponseV1 } from '@types/response/auth_response_v1';
+import { UserV3 } from '@types/auth';
+import { ProfileResponseV1 } from '@types/response/profile_response_v1';
 import { httpGet } from '@utils/httpClient';
 
 class SettingsService {
-
-  async getMobileDashboard(): Promise<User> {
-    const response = await httpGet<AuthResponseV1>('auth/mobile/dashboard');
-    return response.data || {
-      id: 0,
-      firstName: '',
-      lastName: '',
-      email: '',
-    };
+  async getUserInfo(): Promise<UserV3> {
+    const response = await httpGet<ProfileResponseV1>('auth/profile');
+    return response.data;
   }
-
 }
 
 export const settingsService = new SettingsService();

@@ -26,7 +26,6 @@ export default function PreferencesContainer() {
 
                 <PreferencesElement preferenceTitle="Notificaciones" iconName={"notifications-outline"} isOn={settings.notifications} onToggle={() => togglePreference('notifications')} />
                 <PreferencesElement preferenceTitle="Ubicación" iconName={"location-outline"} isOn={settings.location} onToggle={() => togglePreference('location')} />
-                <PreferencesElement preferenceTitle="Modo oscuro" iconName={"moon-outline"} isOn={settings.darkMode} onToggle={() => togglePreference('darkMode')} />
                 <PreferencesElement preferenceTitle="Modo de rendimiento" iconName={"speedometer-outline"} isOn={settings.performanceMode} onToggle={() => togglePreference('performanceMode')} />
 
                 {settings.performanceMode && (

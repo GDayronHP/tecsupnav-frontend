@@ -2,8 +2,14 @@ import { View, Text } from 'react-native'
 
 import AnimatedButton from '@components/AnimatedButton'
 import { Ionicons } from '@expo/vector-icons';
+import { FormattedUserProfile } from '../hooks/useFormattedProfile';
 
-export default function AccountActionsContainer() {
+interface AccountActionsContainerProps {
+    user: FormattedUserProfile;
+    handleLogout: () => Promise<void>;
+}
+
+export default function AccountActionsContainer({ user, handleLogout }: AccountActionsContainerProps) {
     return (
         <View className="bg-white mx-4 mt-4 rounded-2xl p-4 shadow-sm">
             <View className="flex-row items-center mb-4">
@@ -11,6 +17,26 @@ export default function AccountActionsContainer() {
                 <Text className="text-lg font-semibold text-neutral-900 ml-2">
                     Cuenta
                 </Text>
+            </View>
+
+            {/* Información de la cuenta */}
+            <View className="bg-neutral-50 rounded-xl p-3 mb-4">
+                <View className="flex-row items-center justify-between mb-2">
+                    <Text className="text-sm text-neutral-600">Email</Text>
+                    <Text className="text-sm text-neutral-900 font-medium">{user.email}</Text>
+                </View>
+                <View className="flex-row items-center justify-between mb-2">
+                    <Text className="text-sm text-neutral-600">ID de usuario</Text>
+                    <Text className="text-sm text-neutral-900 font-mono">{user.shortId}</Text>
+                </View>
+                <View className="flex-row items-center justify-between">
+                    <Text className="text-sm text-neutral-600">Tipo de cuenta</Text>
+                    <View className="bg-primary-100 px-2 py-1 rounded-md">
+                        <Text className="text-xs text-primary-700 font-medium">
+                            {user.roleDisplay}
+                        </Text>
+                    </View>
+                </View>
             </View>
 
             <View className="space-y-1">
@@ -61,7 +87,7 @@ export default function AccountActionsContainer() {
 
                 <AnimatedButton
                     className="flex-row items-center justify-between py-3"
-                    onPress={() => console.log('Cerrar sesión')}
+                    onPress={handleLogout}
                 >
                     <View className="flex-row items-center">
                         <Ionicons name="log-out-outline" size={18} color="#EF4444" />

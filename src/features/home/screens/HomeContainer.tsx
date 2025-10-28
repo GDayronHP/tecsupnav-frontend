@@ -22,7 +22,7 @@ export default function HomeContainer() {
   };
 
   if (isLoading) {
-    return <Loading title='Localizando en Tecsup' description='Conectando con el sistema del campus' />;
+    return <Loading title='Localizando en Tecsup' description='Conectando con el sistema del campus' iconName="navigate" />;
   }
 
   if (showMainScreen) {

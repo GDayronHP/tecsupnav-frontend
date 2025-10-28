@@ -1,4 +1,4 @@
-import axios, { AxiosRequestConfig } from "axios";
+import axios, { AxiosError, AxiosRequestConfig } from "axios";
 import Constants from "expo-constants";
 import * as SecureStore from "expo-secure-store";
 
@@ -70,6 +70,19 @@ api.interceptors.response.use(
   }
 );
 
+function handleAxiosError(error: any, endpoint: string): never {
+  const axiosError = error as AxiosError<{ message?: string }>;
+  console.error(`❌ Error fetching ${endpoint}:`, axiosError);
+
+  const message =
+    axiosError.response?.data?.message ||
+    axiosError.message ||
+    "Ocurrió un error inesperado al comunicarse con el servidor.";
+
+  throw new Error(message);
+}
+  
+
 export const httpGet = async <T>(
   endpoint: string,
   config?: AxiosRequestConfig
@@ -78,8 +91,7 @@ export const httpGet = async <T>(
     const response = await api.get<T>(endpoint, config);
     return response.data;
   } catch (error) {
-    console.error(`Error fetching ${endpoint}:`, error);
-    throw error;
+    handleAxiosError(error, endpoint);
   }
 };
 
@@ -92,8 +104,7 @@ export const httpPost = async <T>(
     const response = await api.post<T>(endpoint, body, config);
     return response.data;
   } catch (error) {
-    console.error(`Error posting to ${endpoint}:`, error);
-    throw error;
+    handleAxiosError(error, endpoint);
   }
 };
 
@@ -106,8 +117,7 @@ export const httpPut = async <T>(
     const response = await api.put<T>(endpoint, body, config);
     return response.data;
   } catch (error) {
-    console.error(`Error putting to ${endpoint}:`, error);
-    throw error;
+    handleAxiosError(error, endpoint);
   }
 };
 
@@ -119,8 +129,7 @@ export const httpDelete = async <T>(
     const response = await api.delete<T>(endpoint, config);
     return response.data;
   } catch (error) {
-    console.error(`Error deleting ${endpoint}:`, error);
-    throw error;
+    handleAxiosError(error, endpoint);
   }
 };
 

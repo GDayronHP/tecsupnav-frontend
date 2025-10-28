@@ -9,6 +9,8 @@ import ChatBot from "@features/home/components/ChatBot";
 
 // Hooks
 import useTabLayout from "@app/hooks/useTabLayout";
+import { UserProvider } from "@context/UserContext";
+import { SidebarProvider } from "@features/home/context/SidebarContext";
 
 export default function TabLayout() {
   const {
@@ -50,6 +52,7 @@ export default function TabLayout() {
               zIndex: 100
             },
           }}>
+
           <Tabs.Screen
             name="home"
             options={{
@@ -75,11 +78,16 @@ export default function TabLayout() {
                     alignItems: 'center',
                     paddingVertical: 5,
                   }}
+                  activeOpacity={0.7}
                 >
-                  <Ionicons name="settings" size={24} color="gray" />
+                  <Ionicons
+                    name="settings"
+                    size={24}
+                    color={showSettingsModal ? "#00bcd4" : "gray"}
+                  />
                   <Text style={{
                     fontSize: 10,
-                    color: "gray",
+                    color: showSettingsModal ? "#00bcd4" : "gray",
                     marginTop: 2
                   }}>
                     Ajustes
@@ -120,10 +128,12 @@ export default function TabLayout() {
         </TouchableOpacity>
       </View>
 
-      <SettingsModal
-        visible={showSettingsModal}
-        onClose={() => setShowSettingsModal(false)}
-      />
+      <UserProvider>
+        <SettingsModal
+          visible={showSettingsModal}
+          onClose={() => setShowSettingsModal(false)}
+        />
+      </UserProvider>
 
       <VoiceConfirmationModal
         visible={showVoiceModal}

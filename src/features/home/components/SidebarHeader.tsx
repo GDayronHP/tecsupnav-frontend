@@ -1,8 +1,9 @@
-import { View, Text, TouchableOpacity } from 'react-native'
+import { View, Text, TouchableOpacity, Image } from 'react-native'
 import SideBarSearchBar from './SideBarSearchBar';
 import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
 import { AnimatedCloseButton } from './AnimatedButtons';
+import { useUser } from '@context/UserContext';
 
 type HeaderProps = {
     closeSidebar: () => void;
@@ -11,6 +12,9 @@ type HeaderProps = {
 }
 
 export default function SidebarHeader({ closeSidebar, setSearchText, searchText }: HeaderProps) {
+    
+    const { userData } = useUser();
+
     return (
         <>
             <View className="bg-tecsup-surface mb-2">
@@ -30,11 +34,21 @@ export default function SidebarHeader({ closeSidebar, setSearchText, searchText 
                     <View className="bg-tecsup-cyan rounded-card p-4 mb-4">
                         <View className="flex-row items-center mb-3">
                             <View className="w-10 h-10 bg-white rounded-full justify-center items-center mr-3">
-                                <Ionicons name="person" size={20} color="white" />
+                                {userData?.avatar ? (
+                                    <>
+                                        <Image
+                                            source={{ uri: userData.avatar }}
+                                            className="w-full h-full rounded-full"
+                                            resizeMode="cover"
+                                        />
+                                    </>
+                                ) : (
+                                    <Ionicons name="person" size={40} color="white" />
+                                )}
                             </View>
                             <View className="flex-1">
                                 <Text className="text-white text-subtitle font-semibold">Estudiante Tecsup</Text>
-                                <Text className="text-white text-caption text-opacity-80">Sexto Ciclo - 2025</Text>
+                                <Text className="text-white text-caption text-opacity-80">{userData.nombreCompleto}</Text>
                             </View>
                         </View>
 
