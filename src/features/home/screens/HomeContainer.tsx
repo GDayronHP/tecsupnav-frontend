@@ -10,15 +10,12 @@ export default function HomeContainer() {
   const [isLoading, setIsLoading] = useState(false);
   const [showMainScreen, setShowMainScreen] = useState(false);
   const [showPermissionModal, setShowPermissionModal] = useState(true);
-  const [dontAskAgain, setDontAskAgain] = useState(false);
 
   const permissionState = {
     setIsLoading,
     setShowMainScreen,
     showPermissionModal,
     setShowPermissionModal,
-    dontAskAgain,
-    setDontAskAgain,
   };
 
   if (isLoading) {

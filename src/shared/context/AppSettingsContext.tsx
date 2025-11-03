@@ -4,7 +4,6 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 interface AppSettings {
   performanceMode: boolean;
   notifications: boolean;
-  location: boolean;
   darkMode: boolean;
 }
 
@@ -22,7 +21,6 @@ const SETTINGS_KEY = 'tecsupnav_app_settings';
 const defaultSettings: AppSettings = {
   performanceMode: false,
   notifications: true,
-  location: true,
   darkMode: false,
 };
 

@@ -9,7 +9,7 @@ export default function PreferencesContainer() {
     
     const { settings, updateSetting } = useAppSettings();
 
-    const togglePreference = (key: keyof typeof settings) => {
+    const togglePreference = async (key: keyof typeof settings) => {
         updateSetting(key, !settings[key]);
     };
 
@@ -24,8 +24,8 @@ export default function PreferencesContainer() {
 
             <View className="space-y-1">
 
-                <PreferencesElement preferenceTitle="Notificaciones" iconName={"notifications-outline"} isOn={settings.notifications} onToggle={() => togglePreference('notifications')} />
-                <PreferencesElement preferenceTitle="Ubicación" iconName={"location-outline"} isOn={settings.location} onToggle={() => togglePreference('location')} />
+                {/* <PreferencesElement preferenceTitle="Notificaciones" iconName={"notifications-outline"} isOn={settings.notifications} onToggle={() => togglePreference('notifications')} /> */}
+
                 <PreferencesElement preferenceTitle="Modo de rendimiento" iconName={"speedometer-outline"} isOn={settings.performanceMode} onToggle={() => togglePreference('performanceMode')} />
 
                 {settings.performanceMode && (

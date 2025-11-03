@@ -26,7 +26,7 @@ export default function useNavigation(): UseNavigationReturn {
   const [navigation, setNavigation] = useState<NavigationV1>();
   const [hasArrivedAlertShown, setHasArrivedAlertShown] = useState<boolean>(false);
 
-  const { selectedPlace, gpsStatus } = usePlaces();
+  const { selectedPlace } = usePlaces();
 
   const lastPositionRef = useRef<{ latitude: number; longitude: number } | null>(null);
   const lastApiCallRef = useRef<number>(0);
@@ -36,7 +36,6 @@ export default function useNavigation(): UseNavigationReturn {
   const MIN_DISTANCE_METERS = useMemo(() => 10, []);
   const MIN_API_INTERVAL = useMemo(() => 5000, []);
 
-  // Validación inicial del lugar seleccionado
   useEffect(() => {
     if (
       !selectedPlace ||
@@ -189,35 +188,62 @@ export default function useNavigation(): UseNavigationReturn {
     isMountedRef.current = true;
 
     const startWatching = async () => {
-      if (gpsStatus !== "granted") return;
-
       try {
-        const initialLocation = await Location.getCurrentPositionAsync({
-          accuracy: Location.Accuracy.Balanced,
-        });
-
-        if (initialLocation && isMountedRef.current) {
-          const coords = {
-            latitude: initialLocation.coords.latitude,
-            longitude: initialLocation.coords.longitude,
-          };
-          lastPositionRef.current = coords;
-          fetchNavigationData(coords);
+        // Verificar permisos
+        const { status } = await Location.getForegroundPermissionsAsync();
+        console.log('📍 Location permission status:', status);
+        
+        if (status !== "granted") {
+          Alert.alert(
+            '📍 Ubicación Desactivada',
+            'Para continuar con la navegación, necesitas activar los permisos de ubicación desde los ajustes de tu dispositivo.',
+            [{ text: 'Entendido', onPress: () => router.back() }]
+          );
+          return;
         }
 
-        watchSubscriptionRef.current = await Location.watchPositionAsync(
-          {
+        // Intentar obtener la ubicación actual para verificar que realmente funciona
+        try {
+          const initialLocation = await Location.getCurrentPositionAsync({
             accuracy: Location.Accuracy.Balanced,
-            timeInterval: 5000,
-            distanceInterval: 5,
-          },
-          handleLocationUpdate
-        );
+          });
+
+          if (initialLocation && isMountedRef.current) {
+            const coords = {
+              latitude: initialLocation.coords.latitude,
+              longitude: initialLocation.coords.longitude,
+            };
+            lastPositionRef.current = coords;
+            fetchNavigationData(coords);
+          }
+
+          watchSubscriptionRef.current = await Location.watchPositionAsync(
+            {
+              accuracy: Location.Accuracy.Balanced,
+              timeInterval: 5000,
+              distanceInterval: 5,
+            },
+            handleLocationUpdate
+          );
+        } catch (locationError) {
+          console.error('❌ Error al obtener ubicación:', locationError);
+          Alert.alert(
+            '📍 No se puede acceder a la ubicación',
+            'Parece que los servicios de ubicación están desactivados o no se puede acceder a tu ubicación actual. Por favor, verifica la configuración de tu dispositivo.',
+            [{ text: 'Entendido', onPress: () => router.back() }]
+          );
+          return;
+        }
       } catch (error) {
-        console.error('Error starting location watch:', error);
+        console.error('❌ Error starting location watch:', error);
         if (isMountedRef.current) {
           setIsLoading(false);
         }
+        Alert.alert(
+          'Error',
+          'No se pudo iniciar el seguimiento de ubicación. Por favor, intenta nuevamente.',
+          [{ text: 'Entendido', onPress: () => router.back() }]
+        );
       }
     };
 
@@ -229,15 +255,13 @@ export default function useNavigation(): UseNavigationReturn {
         watchSubscriptionRef.current.remove();
       }
     };
-  }, [gpsStatus, fetchNavigationData, handleLocationUpdate]);
+  }, [fetchNavigationData, handleLocationUpdate]);
 
   return {
-    // Estados
     isLoading,
     navigation,
     showNavigationCard,
     
-    // Funciones
     handleCancel,
     confirmCancel,
   };

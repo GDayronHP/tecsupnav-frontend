@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { View, Alert } from "react-native";
 import MapView, { PROVIDER_GOOGLE } from "react-native-maps";
 import MapViewDirections from "react-native-maps-directions";
@@ -31,6 +32,51 @@ export default function Map({ locations, selectedPlace, showRoute, onMarkerPress
     memoizedLocations
   } = useMap(selectedPlace, showRoute, onMarkerPress, navigationMode, locations);
 
+  // Configure initial camera based on navigation mode
+  const getInitialCamera = () => {
+    const baseCamera = {
+      pitch: 0,
+      heading: -24,
+      zoom: 18
+    };
+
+    if (navigationMode && userLocation) {
+      return {
+        center: { 
+          latitude: userLocation.latitude, 
+          longitude: userLocation.longitude 
+        },
+        ...baseCamera
+      };
+    }
+
+    // Default uibcation (TECSUP)
+    return {
+      center: { 
+        latitude: -12.04447, 
+        longitude: -76.95278 
+      },
+      ...baseCamera
+    };
+  };
+
+  useEffect(() => {
+    if (navigationMode && userLocation && mapRef.current) {
+      const camera = {
+        center: {
+          latitude: userLocation.latitude,
+          longitude: userLocation.longitude,
+        },
+        pitch: 0,
+        heading: -24,
+        zoom: 18,
+      };
+
+      mapRef.current.animateCamera(camera, { duration: 1000 });
+      console.log('📍 Navigation mode: Following user location', userLocation);
+    }
+  }, [userLocation, navigationMode]);
+
   return (
     <View style={{ flex: 1 }}>
       <MapView
@@ -38,20 +84,19 @@ export default function Map({ locations, selectedPlace, showRoute, onMarkerPress
         ref={mapRef}
         provider={PROVIDER_GOOGLE}
         style={{ flex: 1 }}
-        initialCamera={{
-          center: { latitude: -12.04447, longitude: -76.95278 },
-          pitch: 0,
-          heading: -24,
-          zoom: 18
-        }}
+        initialCamera={getInitialCamera()}
         onRegionChangeComplete={handleRegionChangeComplete}
         showsUserLocation={true}
-        showsMyLocationButton={true}
+        showsMyLocationButton={!navigationMode}
         mapType="hybrid"
         maxZoomLevel={20}
         minZoomLevel={15}
         rotateEnabled={false}
         pitchEnabled={false}
+        followsUserLocation={navigationMode}
+        userLocationPriority="high"
+        userLocationUpdateInterval={navigationMode ? 1000 : 5000}
+        userLocationFastestInterval={navigationMode ? 500 : 2000}
       >
 
         {memoizedLocations?.map((loc) => (

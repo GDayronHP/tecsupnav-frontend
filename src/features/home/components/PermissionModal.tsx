@@ -1,21 +1,17 @@
 import { Text, View } from "react-native";
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import * as Location from "expo-location";
 import { Ionicons } from "@expo/vector-icons";
 import { Alert, Modal, TouchableOpacity } from "react-native";
-
-import { usePlaces } from "@context/PlacesContext";
 
 export default function PermissionModal({
   setIsLoading,
   setShowMainScreen,
   showPermissionModal,
   setShowPermissionModal,
-  dontAskAgain,
-  setDontAskAgain,
 }) {
 
-  const { gpsStatus, setGpsStatus } = usePlaces();
+  const [hasPermissions, setHasPermissions] = useState(false);
 
   useEffect(() => {
     const checkExistingPermissions = async () => {
@@ -23,20 +19,15 @@ export default function PermissionModal({
         const { status } = await Location.getForegroundPermissionsAsync();
         
         if (status === 'granted') {
-          console.log('✅ Permisos de ubicación ya otorgados');
-          setGpsStatus('granted');
+          setHasPermissions(true);
           setShowPermissionModal(false);
           setShowMainScreen(true);
           setIsLoading(false);
         } else if (status === 'denied') {
-          console.log('❌ Permisos de ubicación denegados');
-          setGpsStatus('denied');
-          
+          setHasPermissions(false);
           setShowPermissionModal(true);
         } else {
-          console.log('⚠️ Permisos de ubicación indeterminados');
-          setGpsStatus('undetermined');
-          
+          setHasPermissions(false);
           setShowPermissionModal(true);
         }
       } catch (error) {
@@ -45,15 +36,10 @@ export default function PermissionModal({
       }
     };
 
-    if (gpsStatus === 'undetermined' || showPermissionModal) {
+    if (showPermissionModal || !hasPermissions) {
       checkExistingPermissions();
-    } else if (gpsStatus === 'granted') {
-      
-      setShowPermissionModal(false);
-      setShowMainScreen(true);
-      setIsLoading(false);
     }
-  }, [gpsStatus, showPermissionModal, setGpsStatus, setShowMainScreen, setShowPermissionModal, setIsLoading]);
+  }, [showPermissionModal, hasPermissions, setShowMainScreen, setShowPermissionModal, setIsLoading]);
 
   const requestLocationPermission = async () => {
     try {
@@ -64,13 +50,40 @@ export default function PermissionModal({
       const { status } = await Location.requestForegroundPermissionsAsync();
 
       if (status === "granted") {
-        console.log('✅ Permisos de ubicación concedidos');
-        setGpsStatus('granted');
-        setIsLoading(false);
-        setShowMainScreen(true);
+        // Verificar que realmente se pueda acceder a la ubicación
+        try {
+          await Location.getCurrentPositionAsync({
+            accuracy: Location.Accuracy.Lowest,
+          });
+          
+          console.log('✅ Permisos de ubicación concedidos y GPS funcionando');
+          setHasPermissions(true);
+          setIsLoading(false);
+          setShowMainScreen(true);
+        } catch (locationError) {
+          console.error('❌ Error al obtener ubicación:', locationError);
+          setHasPermissions(false);
+          setIsLoading(false);
+          Alert.alert(
+            "GPS Desactivado",
+            "Los permisos fueron concedidos pero no se puede acceder a tu ubicación. Por favor, activa el GPS en la configuración de tu dispositivo.",
+            [
+              {
+                text: "Intentar de nuevo",
+                onPress: () => setShowPermissionModal(true),
+              },
+              {
+                text: "Continuar sin ubicación",
+                onPress: () => {
+                  setShowMainScreen(true);
+                },
+              },
+            ]
+          );
+        }
       } else {
         console.log('❌ Permisos de ubicación denegados por el usuario');
-        setGpsStatus('denied');
+        setHasPermissions(false);
         setIsLoading(false);
         Alert.alert(
           "Permisos requeridos",
@@ -84,7 +97,6 @@ export default function PermissionModal({
               text: "Continuar sin ubicación",
               onPress: () => {
                 setShowMainScreen(true);
-                setGpsStatus('denied');
               },
             },
           ]
@@ -93,7 +105,6 @@ export default function PermissionModal({
     } catch (error) {
       console.error("Error requesting location permission:", error);
       setIsLoading(false);
-      setGpsStatus('denied');
       Alert.alert(
         "Error",
         "Ocurrió un error al solicitar permisos de ubicación. Inténtalo nuevamente.",
@@ -111,10 +122,11 @@ export default function PermissionModal({
     }
   };
 
-  const handleReject = () => {
+  const handleReject = async () => {
     console.log('❌ Usuario rechazó permisos de ubicación');
+    
     setShowPermissionModal(false);
-    setGpsStatus('denied');
+    setHasPermissions(false);
     setIsLoading(false);
     
     Alert.alert(
@@ -138,7 +150,7 @@ export default function PermissionModal({
   };
 
   // No mostrar el modal si ya tiene permisos concedidos
-  if (gpsStatus === 'granted') {
+  if (hasPermissions) {
     return null;
   }
 
@@ -157,27 +169,6 @@ export default function PermissionModal({
             <Text className="text-base text-neutral-700 text-center">
               acceda a la ubicación de este dispositivo?
             </Text>
-          </View>
-
-          <View className="self-stretch mb-6">
-            <TouchableOpacity
-              className="flex-row items-center"
-              onPress={() => setDontAskAgain(!dontAskAgain)}
-            >
-              <View
-                className={`w-[18px] h-[18px] border-2 rounded-sm mr-2 justify-center items-center ${dontAskAgain
-                    ? "bg-primary-500 border-primary-500"
-                    : "border-neutral-600"
-                  }`}
-              >
-                {dontAskAgain && (
-                  <Ionicons name="checkmark" size={14} color="white" />
-                )}
-              </View>
-              <Text className="text-caption text-neutral-500">
-                No volver a preguntar
-              </Text>
-            </TouchableOpacity>
           </View>
 
           <View className="flex-row self-stretch justify-end space-x-4">

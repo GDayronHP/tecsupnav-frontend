@@ -9,7 +9,7 @@ interface NavigationCardProps {
 
 export default function NavigationCard({ navigationData }: NavigationCardProps) {
     const destinationName = navigationData?.destination?.nombre;
-    const currentInstruction = navigationData?.instructions?.[0] || 'Sigue recto';
+    const currentInstruction = navigationData?.instructions?.[0] || 'Sin instrucciones';
 
     return (
         <View className="absolute top-2 left-2 right-2 z-40">

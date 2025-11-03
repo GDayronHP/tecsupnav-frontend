@@ -1,15 +1,14 @@
 import { View, Text, TouchableOpacity, Image } from 'react-native'
-import Switch from '@components/Switch';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import AnimatedButton from '@components/AnimatedButton';
 
 import { useUser } from '@context/UserContext';
+import PreferencesElement from './PreferencesElement';
 
 interface SettingsModalBodyProps {
   settings: {
     notifications: boolean;
-    location: boolean;
     darkMode: boolean;
     performanceMode: boolean;
   },
@@ -21,6 +20,10 @@ interface SettingsModalBodyProps {
 export default function SettingsModalBody({ settings, updateSetting, onClose, handleLogout }: SettingsModalBodyProps) {
 
   const { userData } = useUser();
+
+  const togglePreference = async (key: keyof SettingsModalBodyProps['settings']) => {
+    updateSetting(key, !settings[key]);
+  };
 
   return (
     <View className="px-4 pb-6">
@@ -61,7 +64,7 @@ export default function SettingsModalBody({ settings, updateSetting, onClose, ha
       <View className="mb-6">
         <Text className="text-sm font-medium text-neutral-600 mb-3">Preferencias</Text>
 
-        <View className="flex-row items-center justify-between py-3">
+        {/* <View className="flex-row items-center justify-between py-3">
           <View className="flex-row items-center gap-3">
             <Ionicons name="notifications-outline" size={20} color="#9CA3AF" />
             <Text className="text-sm text-neutral-700">Notificaciones</Text>
@@ -70,19 +73,9 @@ export default function SettingsModalBody({ settings, updateSetting, onClose, ha
             isOn={settings.notifications}
             onToggle={() => updateSetting('notifications', !settings.notifications)}
           />
-        </View>
+        </View> */}
 
-        <View className="flex-row items-center justify-between py-3">
-          <View className="flex-row items-center gap-3">
-            <Ionicons name="location-outline" size={20} color="#9CA3AF" />
-            <Text className="text-sm text-neutral-700">Ubicación en tiempo real</Text>
-          </View>
-
-          <Switch
-            isOn={settings.location}
-            onToggle={() => updateSetting('location', !settings.location)}
-          />
-        </View>
+        <PreferencesElement preferenceTitle="Modo de rendimiento" iconName={"speedometer-outline"} isOn={settings.performanceMode} onToggle={() => togglePreference('performanceMode')} />
       </View>
 
       <AnimatedButton

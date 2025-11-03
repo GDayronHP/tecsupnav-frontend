@@ -75,17 +75,14 @@ export default function SettingsModal({ visible, onClose }: SettingsModalProps) 
 
   return (
     <View className="flex-1 absolute bottom-0 left-0 right-0 top-0 z-20">
-      {/* Fondo animado con opacidad - no cubre las tabs */}
       <Backdrop />
 
-      {/* Área de cierre */}
       <TouchableOpacity
         className="flex-1"
         activeOpacity={1}
         onPress={onClose}
       />
 
-      {/* Modal deslizable con animación */}
       <Animated.View
         className="bg-white rounded-t-3xl w-full shadow-2xl"
         style={[
@@ -97,10 +94,8 @@ export default function SettingsModal({ visible, onClose }: SettingsModalProps) 
         ]}
       >
 
-        {/* Header */}
         <SettingsModalHeader onClose={onClose} />
 
-        {/* Content */}
         <SettingsModalBody
           settings={settings}
           updateSetting={updateSetting}

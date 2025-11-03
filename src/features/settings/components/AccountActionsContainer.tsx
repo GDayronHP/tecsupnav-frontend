@@ -1,8 +1,12 @@
 import { View, Text } from 'react-native'
+import { useState } from 'react'
+import { router } from 'expo-router'
 
 import AnimatedButton from '@components/AnimatedButton'
 import { Ionicons } from '@expo/vector-icons';
 import { FormattedUserProfile } from '../hooks/useFormattedProfile';
+import TermsConditionsModal from './TermsConditionsModal';
+import PrivacyPolicyModal from './PrivacyPolicyModal';
 
 interface AccountActionsContainerProps {
     user: FormattedUserProfile;
@@ -10,6 +14,21 @@ interface AccountActionsContainerProps {
 }
 
 export default function AccountActionsContainer({ user, handleLogout }: AccountActionsContainerProps) {
+    const [showTermsModal, setShowTermsModal] = useState(false);
+    const [showPrivacyModal, setShowPrivacyModal] = useState(false);
+
+    const handleHelpSupport = () => {
+        router.push('/help-support');
+    };
+
+    const handleTermsConditions = () => {
+        setShowTermsModal(true);
+    };
+
+    const handlePrivacyPolicy = () => {
+        setShowPrivacyModal(true);
+    };
+
     return (
         <View className="bg-white mx-4 mt-4 rounded-2xl p-4 shadow-sm">
             <View className="flex-row items-center mb-4">
@@ -42,7 +61,7 @@ export default function AccountActionsContainer({ user, handleLogout }: AccountA
             <View className="space-y-1">
                 <AnimatedButton
                     className="flex-row items-center justify-between py-3"
-                    onPress={() => console.log('Abrir ayuda y soporte')}
+                    onPress={handleHelpSupport}
                 >
                     <View className="flex-row items-center">
                         <Ionicons name="help-circle-outline" size={18} color="#6B7280" />
@@ -57,7 +76,7 @@ export default function AccountActionsContainer({ user, handleLogout }: AccountA
 
                 <AnimatedButton
                     className="flex-row items-center justify-between py-3"
-                    onPress={() => console.log('Ver términos y condiciones')}
+                    onPress={handleTermsConditions}
                 >
                     <View className="flex-row items-center">
                         <Ionicons name="document-text-outline" size={18} color="#6B7280" />
@@ -72,7 +91,7 @@ export default function AccountActionsContainer({ user, handleLogout }: AccountA
 
                 <AnimatedButton
                     className="flex-row items-center justify-between py-3"
-                    onPress={() => console.log('Ver política de privacidad')}
+                    onPress={handlePrivacyPolicy}
                 >
                     <View className="flex-row items-center">
                         <Ionicons name="shield-checkmark-outline" size={18} color="#6B7280" />
@@ -97,6 +116,17 @@ export default function AccountActionsContainer({ user, handleLogout }: AccountA
                     </View>
                 </AnimatedButton>
             </View>
+
+            {/* Modales */}
+            <TermsConditionsModal 
+                visible={showTermsModal}
+                onClose={() => setShowTermsModal(false)}
+            />
+            
+            <PrivacyPolicyModal 
+                visible={showPrivacyModal}
+                onClose={() => setShowPrivacyModal(false)}
+            />
         </View>
     )
 }
