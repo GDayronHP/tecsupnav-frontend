@@ -2,7 +2,7 @@ import { useEffect } from "react";
 import { View, Alert } from "react-native";
 import MapView, { PROVIDER_GOOGLE } from "react-native-maps";
 import MapViewDirections from "react-native-maps-directions";
-import type { Place } from "@types/place";
+import type { Place } from "../../../types/place";
 import Constants from "expo-constants";
 
 // Hooks & Services
@@ -29,8 +29,10 @@ export default function Map({ locations, selectedPlace, showRoute, onMarkerPress
     userLocation,
     handleRegionChangeComplete,
     handleMarkerPress,
-    memoizedLocations
+    optimizedMarkers,
+    currentZoom
   } = useMap(selectedPlace, showRoute, onMarkerPress, navigationMode, locations);
+  const shouldShowMarkers = currentZoom >= 17;
 
   // Configure initial camera based on navigation mode
   const getInitialCamera = () => {
@@ -50,7 +52,7 @@ export default function Map({ locations, selectedPlace, showRoute, onMarkerPress
       };
     }
 
-    // Default uibcation (TECSUP)
+    // Default ubication (TECSUP)
     return {
       center: { 
         latitude: -12.04447, 
@@ -89,7 +91,7 @@ export default function Map({ locations, selectedPlace, showRoute, onMarkerPress
         showsUserLocation={true}
         showsMyLocationButton={!navigationMode}
         mapType="hybrid"
-        maxZoomLevel={20}
+        maxZoomLevel={30}
         minZoomLevel={15}
         rotateEnabled={false}
         pitchEnabled={false}
@@ -99,11 +101,11 @@ export default function Map({ locations, selectedPlace, showRoute, onMarkerPress
         userLocationFastestInterval={navigationMode ? 500 : 2000}
       >
 
-        {memoizedLocations?.map((loc) => (
+        {shouldShowMarkers && optimizedMarkers?.map((markerData) => (
           <OptimizedMarker
-            key={loc.id}
-            place={loc}
-            isSelected={selectedPlace?.id === loc.id}
+            key={markerData.id}
+            place={markerData.place}
+            isSelected={markerData.isSelected}
             onPress={handleMarkerPress}
             navigationMode={navigationMode}
           />

@@ -5,8 +5,9 @@ import MapView from 'react-native-maps';
 // Hooks
 import { useLocation } from '@hooks/useLocation';
 import { usePerformantAnimation } from '@hooks/usePerformantAnimation';
+import { useOptimizedMarkers } from '@hooks/useOptimizedMarkers';
 
-import { Place } from '@types/place';
+import type { Place } from '../../../types/place';
 
 const tecsupGroundOverlayBounds = {
     southWest: { latitude: -12.045581, longitude: -76.953785 },
@@ -22,6 +23,7 @@ export default function useMap(selectedPlace: Place, showRoute: boolean, onMarke
         longitudeDelta: 0.005,
     });
 
+    const [currentZoom, setCurrentZoom] = useState(18);
     const mapRef = useRef<MapView>(null);
 
     const [showImageOverlay, setShowImageOverlay] = useState(false);
@@ -88,9 +90,16 @@ export default function useMap(selectedPlace: Place, showRoute: boolean, onMarke
         }
     }, [selectedPlace?.id, selectedPlace?.latitud, selectedPlace?.longitud, showRoute]);
 
-    // Debounce region changes
+    // Debounce region changes and track zoom level
     const handleRegionChangeComplete = useCallback((newRegion: any) => {
         setRegion(newRegion);
+        
+        // Calcular el nivel de zoom aproximado desde latitudeDelta
+        // zoom ≈ log2(360 / latitudeDelta)
+        if (newRegion.latitudeDelta) {
+            const zoom = Math.round(Math.log2(360 / newRegion.latitudeDelta));
+            setCurrentZoom(zoom);
+        }
     }, []);
 
     // Memoize callbacks to avoid re-renders
@@ -99,25 +108,34 @@ export default function useMap(selectedPlace: Place, showRoute: boolean, onMarke
         onMarkerPress?.(place);
     }, [onMarkerPress]);
 
+    // Memoize locations and use optimized markers
     const memoizedLocations = useMemo(() => {
         if (navigationMode && selectedPlace) {
             return [selectedPlace];
         }
-        return locations;
-    }, [locations.length, selectedPlace?.id, navigationMode]);
+        return locations || [];
+    }, [locations?.length, selectedPlace?.id, navigationMode]);
+
+    // Use optimized markers with viewport filtering
+    const optimizedMarkersData = useOptimizedMarkers({
+        locations: memoizedLocations,
+        selectedPlaceId: selectedPlace?.id || null,
+        region: region,
+        maxMarkers: 30 // Limit markers for better performance
+    });
 
 
-    return (
-        {
-            mapRef,
-            showImageOverlay,
-            userLocation,
-            overlayOpacity,
-            overlayScale,
-            showImageOverlayWithAnimation,
-            handleRegionChangeComplete,
-            handleMarkerPress,
-            memoizedLocations
-        }
-    )
+    return {
+        mapRef,
+        showImageOverlay,
+        userLocation,
+        overlayOpacity,
+        overlayScale,
+        showImageOverlayWithAnimation,
+        handleRegionChangeComplete,
+        handleMarkerPress,
+        optimizedMarkers: optimizedMarkersData,
+        currentZoom,
+        region
+    }
 }

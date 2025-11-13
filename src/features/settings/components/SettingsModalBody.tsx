@@ -75,7 +75,12 @@ export default function SettingsModalBody({ settings, updateSetting, onClose, ha
           />
         </View> */}
 
-        <PreferencesElement preferenceTitle="Modo de rendimiento" iconName={"speedometer-outline"} isOn={settings.performanceMode} onToggle={() => togglePreference('performanceMode')} />
+        <PreferencesElement 
+          preferenceTitle="Modo de rendimiento" 
+          iconName={"speedometer-outline"} 
+          isOn={settings.performanceMode} 
+          onToggle={() => togglePreference('performanceMode')} 
+        />
       </View>
 
       <AnimatedButton

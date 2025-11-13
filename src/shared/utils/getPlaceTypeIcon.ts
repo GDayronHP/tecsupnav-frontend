@@ -11,6 +11,7 @@ import {
   Apartment,
   SportsSoccer,
   Wc,
+  RestArea,
 } from '@assets/icons/Place-types';
 
 import { createElement} from 'react';
@@ -31,6 +32,7 @@ const placeIcons: Record<string, React.FC<IconProps>> = {
   apartment: Apartment,
   sports_soccer: SportsSoccer,
   wc: Wc,
+  rest_area: RestArea,
 };
 
 // Mapeo de nombres en español a claves de iconos en inglés
@@ -40,13 +42,14 @@ const typeNameMapping: Record<string, string> = {
   'Oficina': 'office',
   'Polideportivo': 'sports_soccer',
   'Baño': 'wc',
-  'Teatro': 'theater',
+  'Auditorio': 'theater',
   'Biblioteca': 'library',
-  'Restaurante': 'restaurant',
+  'Cafetería': 'restaurant',
   'Puerta': 'door',
   'Manufactura': 'precission_manufacturing',
   'Dominio': 'domain',
   'Departamento': 'apartment',
+  "Área de descanso": 'rest_area',
 };
 
 export default function getPlaceTypeIcon(type?: string, props?: SvgProps) {

@@ -9,6 +9,7 @@ import ChatBot from "@features/home/components/ChatBot";
 
 // Hooks
 import useTabLayout from "@app/hooks/useTabLayout";
+import { useVoiceRecognition } from "../../shared/context/VoiceRecognitionContext";
 import { UserProvider } from "@context/UserContext";
 import { SidebarProvider } from "@features/home/context/SidebarContext";
 
@@ -37,6 +38,8 @@ export default function TabLayout() {
     closeChatBot,
     navigate
   } = useTabLayout();
+  const { activeInstanceId } = useVoiceRecognition();
+  const isTabBarDisabled = activeInstanceId !== null && activeInstanceId !== "tab-bar-voice";
   return (
     <>
       <View style={{ flex: 1 }} onLayout={(e) => setTabWidth(e.nativeEvent.layout.width)}>
@@ -100,9 +103,11 @@ export default function TabLayout() {
 
         <TouchableOpacity
           onPress={async () => {
+            if (isTabBarDisabled) return;
             setShowVoiceModal(true);
             await startListening();
           }}
+          disabled={isTabBarDisabled}
           style={{
             position: 'absolute',
             bottom: 5,
@@ -122,6 +127,7 @@ export default function TabLayout() {
             shadowRadius: 3.84,
             elevation: 5,
             zIndex: 1000,
+            opacity: isTabBarDisabled ? 0.4 : 1,
           }}
         >
           <Ionicons name="mic" size={36} color="white" />

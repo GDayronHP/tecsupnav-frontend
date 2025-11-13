@@ -31,7 +31,7 @@ export default function ChatbotMessagesContainer({ messages, scrollViewRef, freq
       ))}
 
       {/* Frequent Questions */}
-      {messages.length <= 1 && (
+      {messages.length <= 2 && (
         <View className="mt-4">
           <Text className="text-neutral-600 font-medium mb-3">
             Preguntas frecuentes:

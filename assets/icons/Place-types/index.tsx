@@ -10,3 +10,4 @@ export { Domain } from './domain';
 export { Office } from './office';
 export { Apartment } from './apartment';
 export { SportsSoccer } from './sports_soccer';
+export { RestArea } from './rest_area';

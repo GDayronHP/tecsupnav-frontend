@@ -14,7 +14,6 @@ export function useModal() {
     const closeEmergencyModal = useCallback(() => setShowEmergencyModal(false), []);
     const closePlaceInfoCard = useCallback(() => {
         setShowPlaceInfo(false);
-        setSelectedPlace(null);
     }, []);
 
     return (

@@ -6,6 +6,8 @@ import { Dimensions } from "react-native";
 import { usePerformantAnimation } from "@hooks/usePerformantAnimation";
 import { useLocation } from "@hooks/useLocation";
 import { useAiAssistantService } from "../services/aiAssistantService";
+import { useChatbot as useChatbotContext } from "@context/ChatbotContext";
+import { useVoiceRecognition } from "@context/VoiceRecognitionContext";
 
 import { useAnimatedStyle } from "react-native-reanimated";
 import { AiAssistantServiceResponseV1 } from "@types/response/aiAssistant_response_v1";
@@ -34,10 +36,19 @@ export default function useChatbot({
   onNavigate,
   onClose,
 }: ChatbotParams) {
+  const { pendingChatResponse, setPendingChatResponse } = useChatbotContext();
+  const { forceStopActiveInstance } = useVoiceRecognition();
+  
   const [messages, setMessages] = useState<Message[]>([
     {
       id: 1,
       text: "¡Hola! Soy tu asistente de navegación de CampusGo. Puedo ayudarte a encontrar aulas, laboratorios, pabellones y otros lugares",
+      isBot: true,
+      timestamp: new Date(),
+    },
+    {
+      id: 2,
+      text: "💡 **Consejo:** Para mejores resultados, inicia tus consultas con palabras como:\n\n🔍 **Buscar** - laboratorio de química\n📍 **Encontrar** - aula A1\n🚶 **Ir a** - biblioteca\n🗺️ **Mostrar ruta** - cafetería\n❓ **Dónde está** - el baño más cercano\n\nTambién puedes usar las preguntas frecuentes de abajo 👇",
       isBot: true,
       timestamp: new Date(),
     },
@@ -218,6 +229,9 @@ export default function useChatbot({
   const sendMessage = async (messageText = inputText) => {
     if (!messageText.trim()) return;
 
+    // Detener cualquier reconocimiento de voz activo antes de enviar el mensaje
+    forceStopActiveInstance();
+
     const userMessage = {
       id: Date.now(),
       text: messageText,
@@ -230,7 +244,16 @@ export default function useChatbot({
     scrollToBottom();
 
     try {
-      const response = await process({ text: messageText });
+      let response;
+      
+      // Si hay una respuesta pre-computada para esta query, usarla
+      if (pendingChatResponse && messageText === initialQuery) {
+        console.log("🚀 Usando respuesta pre-computada, evitando petición duplicada");
+        response = pendingChatResponse;
+        setPendingChatResponse(null);
+      } else {
+        response = await process({ text: messageText });
+      }
 
       const botResponse: any = {
         id: Date.now() + 1,

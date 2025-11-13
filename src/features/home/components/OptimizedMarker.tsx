@@ -17,27 +17,26 @@ const OptimizedMarker = memo(({ place, isSelected, onPress, navigationMode }: Op
       console.log("⚠️ OptimizedMarker - Press blocked in navigation mode");
       return;
     }
-    
+
     console.log("🔍 OptimizedMarker - Marker pressed:", place.nombre);
     onPress(place);
-
   };
 
   const color = place.tipo.color || '#4F6DF5';
+
+  const markerSize = isSelected ? 32 : 24;
+  const iconSize = isSelected ? 32 : 12;
+  const borderWidth = isSelected ? 4 : 2;
+  const borderColor = '#fff';
+  const anchor = isSelected ? { x: 0.35, y: 1 } : { x: 0.25, y: 0.8 };
 
   return (
     <Marker
       coordinate={{ latitude: place.latitud, longitude: place.longitud }}
       onPress={navigationMode ? undefined : handlePress}
-      anchor={{ x: 0.5, y: 1 }}
-
+      anchor={anchor}
     >
-      <View
-        style={{
-          alignItems: 'center',
-          justifyContent: 'center',
-        }}
-      >
+      {!isSelected ? (
         <View
           style={{
             alignItems: 'center',
@@ -48,36 +47,72 @@ const OptimizedMarker = memo(({ place, isSelected, onPress, navigationMode }: Op
             style={{
               backgroundColor: color,
               borderRadius: 9999,
-              width: 28,
-              height: 28,
+              width: markerSize,
+              height: markerSize,
               alignItems: 'center',
               justifyContent: 'center',
-              borderWidth: 2,
-              borderColor: '#fff',
+              borderWidth: borderWidth,
+              borderColor: borderColor,
             }}
           >
             {getPlaceTypeIcon(place.tipo.nombre, {
               fill: '#fff',
-              width: 16,
-              height: 16,
+              width: iconSize,
+              height: iconSize,
             })}
           </View>
-
           <View
             style={{
               width: 0,
               height: 0,
-              borderLeftWidth: 8,
-              borderRightWidth: 8,
+              borderLeftWidth: 5,
+              borderRightWidth: 5,
               borderTopWidth: 6,
               borderLeftColor: 'transparent',
               borderRightColor: 'transparent',
-              borderTopColor: color,
+              borderTopColor: "white",
               marginTop: -1,
             }}
           />
-        </View>
-      </View>
+        </View>)
+        : (
+          (
+            <View
+              style={{
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
+              <View
+                style={{
+                  backgroundColor: '#ba041c',
+                  borderRadius: 9999,
+                  width: markerSize,
+                  height: markerSize,
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  borderWidth: borderWidth,
+                  borderColor: 'red',
+                }}
+              >
+              </View>
+              <View
+                style={{
+                  width: 0,
+                  height: 0,
+                  borderLeftWidth: 5,
+                  borderRightWidth: 5,
+                  borderTopWidth: 6,
+                  borderLeftColor: 'transparent',
+                  borderRightColor: 'transparent',
+                  borderTopColor: "red",
+                  marginTop: -1,
+                }}
+              />
+            </View>)
+        )
+      }
+
     </Marker>
   );
 }, (prevProps, nextProps) => (

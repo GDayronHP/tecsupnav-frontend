@@ -25,6 +25,8 @@ export default function useTabLayout() {
     closeChatBot,
     pendingChatQuery,
     setPendingChatQuery,
+    pendingChatResponse,
+    setPendingChatResponse,
   } = useChatbot();
 
   // Voice recognition hooks
@@ -72,7 +74,9 @@ export default function useTabLayout() {
           currentLng: location?.coords?.longitude || 0,
         });
 
-        console.log("AI Assistant Response:", result);
+        console.log("🧠 AI Assistant Response:", result);
+
+        if (result.message) throw new Error(result.message);
 
         setAiResponse(result);
 
@@ -89,15 +93,16 @@ export default function useTabLayout() {
           return;
         }
 
-        // Si no hay lugares y no es navegación, enviar al chatbot
+        // Si no hay lugares y no es navegación, enviar al chatbot con respuesta pre-computada
         if (!hasPlaces && result.data.action !== "navigate") {
           console.log(
-            "📝 No hay lugares y no es navegación, enviando al chatbot"
+            "📝 No hay lugares y no es navegación, enviando al chatbot con respuesta pre-computada"
           );
           setAiResponse(null);
           resetState();
           setShowVoiceModal(false);
           setPendingChatQuery(text);
+          setPendingChatResponse(result);
           setShowChatBot(true);
           return;
         }
@@ -132,28 +137,39 @@ export default function useTabLayout() {
         // Para cualquier otro caso no manejado, mostrar en el modal
         console.log("⚠️ Caso no manejado, mostrando en modal por defecto");
       } catch (error) {
-        console.error("Error processing AI response:", error);
+        Alert.alert(
+          "Error",
+          "Ocurrió un error al procesar tu solicitud de voz. Por favor, intenta nuevamente."
+        );
+        console.error("Error en handleVoiceAiResponse:", error);
+        setAiResponse(null);
+        resetState();
+        setShowVoiceModal(false);
       }
     },
     [location?.coords?.latitude, location?.coords?.longitude]
   );
 
   const handleGoToChatBot = useCallback(
-    (query: string) => {
+    (query: string, response?: any) => {
       console.log("💬 Redirigiendo al chatbot con query:", query);
       setAiResponse(null);
       resetState();
       setShowVoiceModal(false);
       setPendingChatQuery(query);
+      if (response) {
+        setPendingChatResponse(response);
+      }
       setShowChatBot(true);
     },
-    [resetState, setPendingChatQuery, setShowChatBot]
+    [resetState, setPendingChatQuery, setPendingChatResponse, setShowChatBot]
   );
 
   const navigate = useCallback(() => {
     setShowChatBot(false);
     setPendingChatQuery("");
-  }, []);
+    setPendingChatResponse(null);
+  }, [setPendingChatQuery, setPendingChatResponse]);
 
   return {
     mainTabsRef,

@@ -39,6 +39,7 @@ export default function ChatbotInput({
                 <VoiceChatButton
                     onTranscription={handleVoiceTranscription}
                     className="mr-3"
+                    instanceId="chatbot-input"
                 />
 
                 <TextInput

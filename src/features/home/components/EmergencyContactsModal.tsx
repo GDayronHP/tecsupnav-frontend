@@ -19,23 +19,18 @@ import Backdrop from "@components/Backdrop";
 const emergencyContacts = [
   {
     id: 1,
-    name: "Seguridad Campus",
-    phone: "(01) 630-6600 Ext.101",
+    name: "Tópico",
+    phone: "(+51) 940457085",
   },
   {
     id: 2,
-    name: "Seguridad Campus",
-    phone: "(01) 630-6600 Ext.101",
+    name: "Vigilancia",
+    phone: "(+51) 922480116",
   },
   {
     id: 3,
-    name: "Seguridad Campus",
-    phone: "(01) 630-6600 Ext.101",
-  },
-  {
-    id: 4,
-    name: "Seguridad Campus",
-    phone: "(01) 630-6600 Ext.101",
+    name: "Pedro Flores",
+    phone: "(+51) 955921535",
   },
 ];
 

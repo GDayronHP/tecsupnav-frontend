@@ -32,18 +32,18 @@ export function useSpeechToText(): SpeechToTextHook {
   useSpeechRecognitionEvent("start", () => {
     setIsListening(true);
     setError(null);
-    setHasReceivedResult(false); // Reset flag cuando inicia
+    setHasReceivedResult(false);
   });
   
   useSpeechRecognitionEvent("end", () => {
     setIsListening(false);
-    // Verificar si se recibió algún resultado en esta sesión
+
     setHasReceivedResult((received) => {
       if (!received) {
         setError("No se detectó ninguna palabra. Por favor, intenta de nuevo.");
-        setTranscription(""); // Limpiar transcripción vieja si no hubo resultado
+        setTranscription("");
       }
-      return false; // Reset para la próxima sesión
+      return false; 
     });
   });
   
@@ -52,12 +52,11 @@ export function useSpeechToText(): SpeechToTextHook {
     if (text) {
       setTranscription(text);
       setError(null);
-      setHasReceivedResult(true); // Marcar que se recibió resultado
+      setHasReceivedResult(true);
     }
   });
   
   useSpeechRecognitionEvent("error", (event) => {
-    // Solo manejar errores críticos, no la falta de detección
     if (event.error !== 'no-speech') {
       console.error("Speech recognition error:", event);
       setError(event.message || "Ocurrió un error en el reconocimiento de voz");
@@ -68,7 +67,6 @@ export function useSpeechToText(): SpeechToTextHook {
   // Iniciar reconocimiento
   const startListening = useCallback(async () => {
     try {
-      // Limpiar estados anteriores INMEDIATAMENTE
       setError(null);
       setTranscription("");
       setIsListening(false);
@@ -80,14 +78,11 @@ export function useSpeechToText(): SpeechToTextHook {
         return;
       }
 
-      // Detener cualquier sesión activa antes de iniciar una nueva
       try {
         await ExpoSpeechRecognitionModule.stop();
       } catch (e) {
-        // Ignorar errores al detener, puede que no haya sesión activa
       }
 
-      // Esperar un momento para asegurar que todo se limpió
       await new Promise(resolve => setTimeout(resolve, 150));
 
       try {

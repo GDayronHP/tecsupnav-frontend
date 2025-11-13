@@ -121,6 +121,10 @@ export default function useAuth() {
             setIsAuthenticated(false);
             
         } catch (error) {
+            Alert.alert(
+                "Error",
+                "Ocurrió un error al verificar la autenticación. Por favor, inicia sesión nuevamente."
+            );
             console.error('❌ Error verificando autenticación:', error);
             setIsAuthenticated(false);
 

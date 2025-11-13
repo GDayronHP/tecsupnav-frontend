@@ -1,23 +1,44 @@
-import { useMemo } from 'react';
+import { useMemo, useDeferredValue } from 'react';
 
 /**
- * Hook para filtrar arrays u objetos según searchData.
- * @param {Array|Object} data - Datos a filtrar.
- * @param {string} searchData - Texto de búsqueda.
- * @returns {Array|Object} Datos filtrados.
+ * Hook optimizado para filtrar datos con debounce
  */
-const useFilterData = (data, searchData) => {
+const useFilterData = (data: any[], searchData: string) => {
+  // Usar useDeferredValue para diferir actualizaciones costosas
+  const deferredSearchData = useDeferredValue(searchData);
+  
   return useMemo(() => {
-    if (!data || !searchData) return data;
+    if (!data || !deferredSearchData) return data;
 
+    // Normalizar búsqueda para mejor rendimiento
+    const normalizedSearch = deferredSearchData.toLowerCase().trim();
+    if (normalizedSearch === '') return data;
+
+    const startTime = Date.now();
+    
     const dataType = Object.prototype.toString.call(data);
 
     if (dataType === '[object Array]') {
-      return data.filter(obj =>
-        Object.values(obj).some(value =>
-          String(value).toLowerCase().includes(searchData.toLowerCase())
-        )
-      );
+      const filtered = data.filter(obj => {
+        // Optimización: buscar solo en campos relevantes para lugares
+        if (obj.nombre || obj.descripcion || obj.tipo) {
+          const searchableFields = [obj.nombre, obj.descripcion, obj.tipo?.nombre];
+          return searchableFields.some(field => 
+            field && String(field).toLowerCase().includes(normalizedSearch)
+          );
+        }
+        // Fallback para otros tipos de objetos
+        return Object.values(obj).some(value =>
+          String(value).toLowerCase().includes(normalizedSearch)
+        );
+      });
+
+      const elapsed = Date.now() - startTime;
+      if (elapsed > 10) {
+        console.log(`⚠️ Slow filter operation: ${elapsed}ms for ${data.length} items`);
+      }
+
+      return filtered;
     }
 
     else if (dataType === '[object Object]') {
@@ -29,13 +50,13 @@ const useFilterData = (data, searchData) => {
             return false;
           }
 
-          return String(value).toLowerCase().includes(searchData.toLowerCase());
+          return String(value).toLowerCase().includes(normalizedSearch);
         })
       );
     }
 
     return data;
-  }, [data, searchData]);
+  }, [data, deferredSearchData]);
 };
 
 export default useFilterData;

@@ -14,4 +14,6 @@ export interface AiAssistantServiceResponseV2 {
     };
   };
   userId: string;
+  message?: string;
+  statusCode?: number;
 }
