@@ -31,7 +31,6 @@ const MapContainer = memo(({
                 selectedPlace={selectedPlace}
                 showRoute={showRoute}
                 onMarkerPress={(place) => {
-                    console.log("Marker pressed:", place.nombre);
                     setSelectedPlace(place);
                     setShowPlaceInfo(true);
                 }}
@@ -40,12 +39,12 @@ const MapContainer = memo(({
             {/* Emergency Button */}
             <View className="absolute right-4 bottom-4">
                 <TouchableOpacity
-                    className="w-11 h-11 rounded-full bg-error-500 justify-center items-center shadow-lg"
+                    className="w-12 h-12 rounded-full bg-error-500 justify-center items-center shadow-lg"
                     onPress={() => setShowEmergencyModal(true)}
                     activeOpacity={0.7}
                     style={{ zIndex: 1000 }}
                 >
-                    <Ionicons name="flash" size={20} color="white" />
+                    <Ionicons name="flash" size={22} color="white" />
                 </TouchableOpacity>
             </View>
 

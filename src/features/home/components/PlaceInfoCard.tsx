@@ -12,7 +12,7 @@ import { Ionicons } from "@expo/vector-icons";
 import Animated, { useAnimatedStyle } from 'react-native-reanimated';
 import { usePerformantAnimation } from '../../../shared/hooks/usePerformantAnimation';
 import { Place } from "../../../types/place";
-import { Navigation } from "../../../types/navigation";
+import { NavigationV1 } from "../../../types/navigation";
 
 interface PlaceInfoCardProps {
   place: Place;
@@ -20,7 +20,7 @@ interface PlaceInfoCardProps {
   onClose: () => void;
   onRoutePress?: () => void;
   realTimeNavigation?: boolean;
-  navigationData?: Navigation;
+  navigationData?: NavigationV1;
   modalKey?: number; // Agregar prop para forzar re-renders
 }
 
@@ -229,17 +229,32 @@ const PlaceInfoCard: React.FC<PlaceInfoCardProps> = ({
                 </View>
               )}
 
-              <View className="bg-neutral-50 rounded-xl p-4 mb-6">
-                <View className="flex-row items-center mb-2">
-                  <Ionicons name="map-outline" size={16} color="#6B7280" />
-                  <Text className="text-sm text-neutral-600 ml-2 font-medium">
-                    Coordenadas
+              <View className="flex-row mb-6 gap-3">
+                <View className="flex-1 bg-neutral-50 rounded-xl p-3">
+                  <View className="flex-row items-center mb-1">
+                    <Ionicons name="business-outline" size={16} color="#6B7280" />
+                    <Text className="text-xs text-neutral-600 ml-2 font-medium">
+                      Edificio
+                    </Text>
+                  </View>
+                  <Text className="text-sm text-neutral-800 font-semibold">
+                    {place.edificio ? place.edificio : 'N/A'}
                   </Text>
                 </View>
-                <Text className="text-sm text-neutral-500 ml-6">
-                  {place.latitud}, {place.longitud}
-                </Text>
+          
+                <View className="flex-1 bg-neutral-50 rounded-xl p-3">
+                  <View className="flex-row items-center mb-1">
+                    <Ionicons name="layers-outline" size={16} color="#6B7280" />
+                    <Text className="text-xs text-neutral-600 ml-2 font-medium">
+                      Piso
+                    </Text>
+                  </View>
+                  <Text className="text-sm text-neutral-800 font-semibold">
+                    { place.piso !== undefined && place.piso !== null ? (place.piso === 0 ? 'Planta Baja' : `Piso ${place.piso}`) : 'N/A'}
+                  </Text>
+                </View>
               </View>
+
               <View className="flex-row gap-3">
                 <TouchableOpacity
                   className="flex-1 bg-cyan-500 py-4 rounded-2xl items-center shadow-sm"

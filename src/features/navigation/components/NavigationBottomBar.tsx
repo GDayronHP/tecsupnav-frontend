@@ -23,9 +23,47 @@ export default function NavigationBottomBar({ selectedPlace, navigation, handleC
                 shadowRadius: 8,
                 elevation: 8
             }}>
-                {/* Header con nombre de la ubicación a navegar */}
+                {/* Header con nombre del destino e información de ubicación */}
+                <View className="mb-2">
+                    <View className="flex-row items-center justify-between">
+                        <View className="flex-row items-center flex-1">
+                            <View className="w-2 h-2 bg-error-500 rounded-full mr-2" />
+                            <Text className="text-neutral-900 font-bold text-base" numberOfLines={1}>
+                                {selectedPlace?.nombre || 'Destino'}
+                            </Text>
+                        </View>
+                        
+                        {/* ✅ Información de edificio y piso compacta */}
+                        {(selectedPlace?.edificio || selectedPlace?.piso !== undefined) && (
+                            <View className="flex-row items-center ml-3 bg-neutral-50 px-2.5 py-1.5 rounded-lg">
+                                {selectedPlace.edificio && (
+                                    <>
+                                        <Ionicons name="business-outline" size={14} color="#6B7280" />
+                                        <Text className="text-neutral-600 text-xs ml-1 font-medium">
+                                            {selectedPlace.edificio}
+                                        </Text>
+                                    </>
+                                )}
+                                
+                                {selectedPlace.edificio && selectedPlace.piso !== undefined && selectedPlace.piso !== null && (
+                                    <View className="w-1 h-1 bg-neutral-400 rounded-full mx-2" />
+                                )}
+                                
+                                {selectedPlace.piso !== undefined && selectedPlace.piso !== null && (
+                                    <>
+                                        <Ionicons name="layers-outline" size={14} color="#6B7280" />
+                                        <Text className="text-neutral-600 text-xs ml-1 font-medium">
+                                            {selectedPlace.piso === 0 ? 'PB' : `Piso ${selectedPlace.piso}`}
+                                        </Text>
+                                    </>
+                                )}
+                            </View>
+                        )}
+                    </View>
+                </View>
+
+                {/* Contenedor inferior: controles + info */}
                 <View>
-                    {/* Contenedor inferior: controles + info */}
                     <View className="flex-row items-center justify-between">
                         {/* Botón de cancelar navegación */}
                         <TouchableOpacity

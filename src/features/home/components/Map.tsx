@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect} from "react";
 import { View, Alert } from "react-native";
 import MapView, { PROVIDER_GOOGLE } from "react-native-maps";
 import MapViewDirections from "react-native-maps-directions";
@@ -10,6 +10,7 @@ import useMap from "../hooks/useMap";
 
 // Components
 import OptimizedMarker from "./OptimizedMarker";
+import SelectionPanel from "./SelectionPanel";
 
 const GOOGLE_MAPS_APIKEY = Constants.expoConfig?.extra?.GOOGLE_MAPS_API_KEY;
 const GOOGLE_MAPS_ID = Constants.expoConfig?.extra?.GOOGLE_MAPS_ID;
@@ -30,11 +31,13 @@ export default function Map({ locations, selectedPlace, showRoute, onMarkerPress
     handleRegionChangeComplete,
     handleMarkerPress,
     optimizedMarkers,
-    currentZoom
-  } = useMap(selectedPlace, showRoute, onMarkerPress, navigationMode, locations);
-  const shouldShowMarkers = currentZoom >= 17;
+    selectedFloor,
+    availableFloors,
+    setIsFloorPanelExpanded,
+    isFloorPanelExpanded,
+    setSelectedFloor,
+  } = useMap({selectedPlace, showRoute, onMarkerPress, navigationMode, locations});
 
-  // Configure initial camera based on navigation mode
   const getInitialCamera = () => {
     const baseCamera = {
       pitch: 0,
@@ -101,13 +104,14 @@ export default function Map({ locations, selectedPlace, showRoute, onMarkerPress
         userLocationFastestInterval={navigationMode ? 500 : 2000}
       >
 
-        {shouldShowMarkers && optimizedMarkers?.map((markerData) => (
+        {optimizedMarkers?.map((markerData) => (
           <OptimizedMarker
             key={markerData.id}
             place={markerData.place}
             isSelected={markerData.isSelected}
             onPress={handleMarkerPress}
             navigationMode={navigationMode}
+            selectedFloor={selectedFloor}
           />
         ))}
 
@@ -140,6 +144,10 @@ export default function Map({ locations, selectedPlace, showRoute, onMarkerPress
           />
         )}
       </MapView>
+
+      {!navigationMode && availableFloors.length > 1 && (
+        <SelectionPanel isFloorPanelExpanded={isFloorPanelExpanded} setIsFloorPanelExpanded={setIsFloorPanelExpanded} selectedFloor={selectedFloor} setSelectedFloor={setSelectedFloor} availableFloors={availableFloors} />
+      )}
     </View>
   );
 }

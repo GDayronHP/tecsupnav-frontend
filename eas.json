@@ -9,17 +9,18 @@
       "distribution": "internal"
     },
     "preview": {
-      "developmentClient": true,
-      "distribution": "internal",
+      "channel": "preview",
+      "autoIncrement": true,
       "android": {
         "buildType": "apk"
       },
       "node": "22.17.0"
     },
     "production": {
+      "channel": "production",
       "autoIncrement": true,
       "android": {
-        "buildType": "apk"
+        "buildType": "app-bundle"
       },
       "ios": {
         "simulator": false

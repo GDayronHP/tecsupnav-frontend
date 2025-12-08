@@ -79,20 +79,44 @@ export default function useNavigation(): UseNavigationReturn {
   }, [confirmCancel]);
 
   // Verificar llegada al destino
-  const checkArrival = useCallback((navigationData: NavigationV1) => {
-    if (!navigationData?.route || hasArrivedAlertShown) return;
+  const checkArrival = useCallback((navigationData: NavigationV1, currentCoords: { latitude: number; longitude: number }) => {
+    if (!navigationData?.destination || !selectedPlace || hasArrivedAlertShown) return;
 
-    const { distancia, tiempoEstimado } = navigationData.route;
+    const distanceToDestination = getDistanceFromLatLonInMeters(
+      currentCoords.latitude,
+      currentCoords.longitude,
+      selectedPlace.latitud,
+      selectedPlace.longitud
+    );
 
-    const hasArrived = distancia <= 10 || tiempoEstimado <= 1;
+    const ARRIVAL_THRESHOLD_METERS = 5;
+    const hasArrived = distanceToDestination <= ARRIVAL_THRESHOLD_METERS;
+
+    console.log(`📍 Distancia al destino: ${distanceToDestination.toFixed(2)}m (umbral: ${ARRIVAL_THRESHOLD_METERS}m)`);
 
     if (hasArrived) {
       setHasArrivedAlertShown(true);
       Speech.stop();
 
+      // ✅ Construir mensaje con información de ubicación
+      let locationDetails = '';
+      
+      if (selectedPlace.edificio || selectedPlace.piso !== undefined) {
+        locationDetails = '\n\n📍 Ubicación:';
+        
+        if (selectedPlace.edificio) {
+          locationDetails += `\n• Edificio: ${selectedPlace.edificio}`;
+        }
+        
+        if (selectedPlace.piso !== undefined && selectedPlace.piso !== null) {
+          const pisoText = selectedPlace.piso === 0 ? 'Planta Baja' : `Piso ${selectedPlace.piso}`;
+          locationDetails += `\n• ${pisoText}`;
+        }
+      }
+
       Alert.alert(
         '🎉 ¡Has llegado!',
-        `Has llegado exitosamente a ${selectedPlace?.nombre || 'tu destino'}.\n\n¿Deseas finalizar la navegación?`,
+        `Has llegado exitosamente a ${selectedPlace?.nombre || 'tu destino'}.${locationDetails}\n\n¿Deseas finalizar la navegación?`,
         [
           {
             text: 'Continuar navegando',
@@ -112,7 +136,7 @@ export default function useNavigation(): UseNavigationReturn {
         { cancelable: false }
       );
     }
-  }, [hasArrivedAlertShown, selectedPlace?.nombre]);
+  }, [hasArrivedAlertShown, selectedPlace]);
 
   // Obtener datos de navegación
   const fetchNavigationData = useCallback(async (coords: { latitude: number; longitude: number }) => {
@@ -143,8 +167,8 @@ export default function useNavigation(): UseNavigationReturn {
         if (isMountedRef.current) {
           setNavigation(data.data);
 
-          // Verificar si ha llegado al destino
-          checkArrival(data.data);
+          // ✅ CORREGIDO: Pasar las coordenadas actuales a checkArrival
+          checkArrival(data.data, coords);
 
           if (isLoading) setIsLoading(false);
         }

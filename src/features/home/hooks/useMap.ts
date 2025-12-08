@@ -14,7 +14,15 @@ const tecsupGroundOverlayBounds = {
     northEast: { latitude: -12.043138, longitude: -76.951569 },
 };
 
-export default function useMap(selectedPlace: Place, showRoute: boolean, onMarkerPress?: (place: Place) => void, navigationMode?: boolean, locations?: Place[]) {
+interface UseMapProps {
+    selectedPlace: Place | null;
+    showRoute: boolean;
+    onMarkerPress?: (place: Place) => void;
+    navigationMode?: boolean;
+    locations: Place[];
+}
+
+export default function useMap({ selectedPlace, showRoute, onMarkerPress, navigationMode, locations }: UseMapProps) {
 
     const [region, setRegion] = useState({
         latitude: -12.044345,
@@ -33,6 +41,10 @@ export default function useMap(selectedPlace: Place, showRoute: boolean, onMarke
     // Performance-aware animation hooks
     const { animatedValue: overlayOpacity, animateWithTiming: animateOpacity } = usePerformantAnimation(0);
     const { animatedValue: overlayScale, animateWithTiming: animateScale } = usePerformantAnimation(0.8);
+
+    // Selection panel handlers
+    const [selectedFloor, setSelectedFloor] = useState<number | null>(null);
+    const [isFloorPanelExpanded, setIsFloorPanelExpanded] = useState<boolean>(false);
 
     const showImageOverlayWithAnimation = useCallback(() => {
         setShowImageOverlay(true);
@@ -104,9 +116,12 @@ export default function useMap(selectedPlace: Place, showRoute: boolean, onMarke
 
     // Memoize callbacks to avoid re-renders
     const handleMarkerPress = useCallback((place: Place) => {
-        console.log("🔍 Map - Marker pressed:", place.nombre);
+        if (selectedFloor !== null && place.piso !== selectedFloor) {
+            console.log('🚫 Marker blocked: different floor');
+            return;
+        }
         onMarkerPress?.(place);
-    }, [onMarkerPress]);
+    }, [onMarkerPress, selectedFloor]);
 
     // Memoize locations and use optimized markers
     const memoizedLocations = useMemo(() => {
@@ -121,8 +136,18 @@ export default function useMap(selectedPlace: Place, showRoute: boolean, onMarke
         locations: memoizedLocations,
         selectedPlaceId: selectedPlace?.id || null,
         region: region,
-        maxMarkers: 30 // Limit markers for better performance
+        maxMarkers: 30
     });
+
+    const availableFloors = useMemo(() => {
+        const floors = new Set<number>();
+        locations.forEach(place => {
+        if (place.piso !== undefined && place.piso !== null) {
+            floors.add(place.piso);
+        }
+        });
+        return Array.from(floors).sort((a, b) => a - b);
+    }, [locations]);
 
 
     return {
@@ -136,6 +161,11 @@ export default function useMap(selectedPlace: Place, showRoute: boolean, onMarke
         handleMarkerPress,
         optimizedMarkers: optimizedMarkersData,
         currentZoom,
-        region
+        region,
+        selectedFloor,
+        setSelectedFloor,
+        isFloorPanelExpanded,
+        setIsFloorPanelExpanded,
+        availableFloors
     }
 }

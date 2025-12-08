@@ -7,6 +7,12 @@ export default
       name: "TecsupNav",
       slug: "TecsupNav",
       version: "1.0.0",
+      updates: {
+        url: "https://u.expo.dev/ee593b5d-6f94-46ea-a58b-46daa5702247"
+      },
+      runtimeVersion: {
+        policy: "appVersion"
+      },
       orientation: "portrait",
       icon: "./assets/icons/icon.png",
       userInterfaceStyle: "light",
