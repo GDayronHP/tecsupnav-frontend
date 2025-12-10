@@ -2,7 +2,7 @@ import React, { useEffect, useMemo } from 'react';
 import { View } from 'react-native';
 import { usePerformantAnimation } from '@hooks/usePerformantAnimation';
 import Map from '@features/home/components/Map';
-import { usePlaces } from '@context/PlacesContext';
+import { usePlacesStore, useNavigationStore } from '@/stores';
 import NavigationCard from '../components/NavigationCard';
 import NavigationBottomBar from '../components/NavigationBottomBar';
 import Loading from '@components/Loading';
@@ -19,7 +19,10 @@ export default function NavigationScreen() {
   const { animatedValue: cardTranslateY, animateWithSpring: animateCardTranslateY } = usePerformantAnimation(300);
   const { animatedValue: cardOpacity, animateWithTiming: animateCardOpacity } = usePerformantAnimation(0);
 
-  const { locations, selectedPlace, showRoute } = usePlaces();
+  // Selective subscriptions to prevent unnecessary re-renders
+  const locations = usePlacesStore(s => s.locations);
+  const selectedPlace = usePlacesStore(s => s.selectedPlace);
+  const showRoute = usePlacesStore(s => s.showRoute);
 
   useEffect(() => {
     if (showNavigationCard) {

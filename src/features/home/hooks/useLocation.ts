@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { usePlaces } from "@context/PlacesContext";
+import { usePlacesStore } from "@/stores";
 
 import { usePlacesService } from "../services/placeService";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -11,7 +11,9 @@ export function useLocation() {
 
     const [loadingLocations, setLoadingLocations] = useState(true);
 
-    const { locations, setLocations } = usePlaces();
+    // Selective subscriptions
+    const locations = usePlacesStore(s => s.locations);
+    const setLocations = usePlacesStore(s => s.setLocations);
 
     useEffect(() => {
         let isMounted = true;

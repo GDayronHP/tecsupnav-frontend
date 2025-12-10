@@ -1,7 +1,7 @@
 import { View, Text, ScrollView, SafeAreaView, TouchableOpacity, Linking, Alert, Image } from 'react-native'
 import { Stack, router } from 'expo-router'
 import { Ionicons } from '@expo/vector-icons'
-import { useChatbot } from '@context/ChatbotContext'
+import { useChatbotStore } from '@/stores'
 
 import FAQItem from '../components/FAQItem'
 import ContactOption from '../components/ContactOption'
@@ -36,7 +36,8 @@ const faqData = [
 
 export default function HelpSupportScreen() {
 
-    const { openChatBot } = useChatbot();
+    // Selective subscription - only get openChatBot action
+    const openChatBot = useChatbotStore(s => s.openChatBot);
 
     const handleContactEmail = () => {
         Linking.openURL('mailto:tecsupnav@gmail.com?subject=Soporte TecsupNav')

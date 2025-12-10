@@ -14,7 +14,7 @@ interface ChatbotMessagesElementProps {
     formatTime: (date: Date) => string;
 }
 
-export default function ChatbotMessagesElement({ message, handlePlaceSelection, handleOptionSelection, formatTime}: ChatbotMessagesElementProps) {
+export default function ChatbotMessagesElement({ message, handlePlaceSelection, handleOptionSelection, formatTime }: ChatbotMessagesElementProps) {
     return (
         <View key={message.id} className="mb-4">
             <View
@@ -38,13 +38,11 @@ export default function ChatbotMessagesElement({ message, handlePlaceSelection, 
                             className={`text-base leading-5 ${message.isBot ? "text-neutral-800" : "text-white"
                                 }`}
                         >
-                            {message.text}
-                        </Text>
-                        <Text
-                            className={`text-xs mt-1 ${message.isBot ? "text-neutral-500" : "text-white/70"
-                                }`}
-                        >
-                            {formatTime(message.timestamp)}
+                            {message.places?.length > 0 || message.options?.length > 0 ? (
+                                <>
+                                    {'Estas son las opciones disponibles:'}
+                                </>
+                            ) : message.text}
                         </Text>
                         {message.isBot && (message.places || message.options) && (
                             <View className="mt-3">
@@ -59,6 +57,12 @@ export default function ChatbotMessagesElement({ message, handlePlaceSelection, 
                                 />
                             </View>
                         )}
+                        <Text
+                            className={`text-xs mt-1 ${message.isBot ? "text-neutral-500" : "text-white/70"
+                                }`}
+                        >
+                            {formatTime(message.timestamp)}
+                        </Text>
                     </View>
                 </View>
             </View>

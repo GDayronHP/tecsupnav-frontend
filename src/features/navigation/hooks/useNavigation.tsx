@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { Alert } from 'react-native';
 import { router } from 'expo-router';
-import { usePlaces } from '@context/PlacesContext';
+import { usePlacesStore } from '@/stores';
 import { navigationService } from '../services/navigationService';
 import * as Location from 'expo-location';
 import type { NavigationRequestV1 } from '../../../types/request/navigation_request_v1';
@@ -26,7 +26,8 @@ export default function useNavigation(): UseNavigationReturn {
   const [navigation, setNavigation] = useState<NavigationV1>();
   const [hasArrivedAlertShown, setHasArrivedAlertShown] = useState<boolean>(false);
 
-  const { selectedPlace } = usePlaces();
+  // Selective subscription - only get selectedPlace
+  const selectedPlace = usePlacesStore(s => s.selectedPlace);
 
   const lastPositionRef = useRef<{ latitude: number; longitude: number } | null>(null);
   const lastApiCallRef = useRef<number>(0);
@@ -167,10 +168,12 @@ export default function useNavigation(): UseNavigationReturn {
         if (isMountedRef.current) {
           setNavigation(data.data);
 
-          // ✅ CORREGIDO: Pasar las coordenadas actuales a checkArrival
           checkArrival(data.data, coords);
+          
+          await new Promise(resolve => setTimeout(resolve, 1000));
 
           if (isLoading) setIsLoading(false);
+
         }
       } catch (error) {
         console.error('Error fetching navigation data:', error);

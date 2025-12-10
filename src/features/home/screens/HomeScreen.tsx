@@ -20,10 +20,9 @@ import HomeHeader from "../components/HomeHeader";
 import CampusInfoCard from "../components/CampusInfoCard";
 import MapContainer from "../components/MapContainer";
 
-// Context
-import { usePlaces } from "@context/PlacesContext";
+// Stores
+import { usePlacesStore, useChatbotStore } from "@/stores";
 import Backdrop from "@components/Backdrop";
-import { useChatbot } from "@context/ChatbotContext";
 
 // Constants
 const SIDEBAR_WIDTH = 320;
@@ -31,10 +30,15 @@ const SIDEBAR_WIDTH = 320;
 export default function HomeScreen() {
 
   // ChatBot Modal State
-  const { openChatBot} = useChatbot();
+  const openChatBot = useChatbotStore(s => s.openChatBot);
 
-  // Map & Places State
-  const { selectedPlace, showPlaceInfo, setShowPlaceInfo, showRoute, setSelectedPlace, setShowRoute } = usePlaces();
+  // Map & Places State - Selective subscriptions
+  const selectedPlace = usePlacesStore(s => s.selectedPlace);
+  const showPlaceInfo = usePlacesStore(s => s.showPlaceInfo);
+  const setShowPlaceInfo = usePlacesStore(s => s.setShowPlaceInfo);
+  const showRoute = usePlacesStore(s => s.showRoute);
+  const setSelectedPlace = usePlacesStore(s => s.setSelectedPlace);
+  const setShowRoute = usePlacesStore(s => s.setShowRoute);
 
   // Location states
   const { locations, loadingLocations } = useLocation();

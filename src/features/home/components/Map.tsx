@@ -85,7 +85,7 @@ export default function Map({ locations, selectedPlace, showRoute, onMarkerPress
   return (
     <View style={{ flex: 1 }}>
       <MapView
-        googleMapId={GOOGLE_MAPS_ID}
+        {...(GOOGLE_MAPS_ID ? { googleMapId: GOOGLE_MAPS_ID } : {})}
         ref={mapRef}
         provider={PROVIDER_GOOGLE}
         style={{ flex: 1 }}

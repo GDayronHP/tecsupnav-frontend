@@ -1,6 +1,7 @@
 {
   "compilerOptions": {
     "paths": {
+      "@/*": ["./src/*"],
       "@assets/*": ["./assets/*"],
       "@app/*": ["./src/app/*"],
       "@features/*": ["./src/features/*"],

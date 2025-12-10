@@ -3,11 +3,14 @@ import * as Location from 'expo-location';
 import { router } from "expo-router";
 import { useCallback } from "react";
 
-import { usePlaces } from "@context/PlacesContext";
+import { usePlacesStore } from "@/stores";
 import type { Place } from "../../../types/place";
 
 export default function usePlaceNavigation() {
-  const { setShowRoute, setShowPlaceInfo, setSelectedPlace } = usePlaces();
+  // Selective subscriptions for actions only
+  const setShowRoute = usePlacesStore(s => s.setShowRoute);
+  const setShowPlaceInfo = usePlacesStore(s => s.setShowPlaceInfo);
+  const setSelectedPlace = usePlacesStore(s => s.setSelectedPlace);
 
   const handlePlaceSelect = useCallback(
     (place: Place) => {

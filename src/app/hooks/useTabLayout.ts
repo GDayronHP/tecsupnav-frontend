@@ -5,11 +5,10 @@ import { useSpeechToText } from "@features/home/hooks/useSpeechToText";
 
 // Hooks & Services
 import { useAiAssistantService } from "@features/home/services/aiAssistantService";
-import { usePlaces } from "@context/PlacesContext";
+import { usePlacesStore, useChatbotStore } from "@/stores";
 import { useLocation } from "@hooks/useLocation";
 import usePlaceNavigation from "@features/home/hooks/usePlaceNavigation";
 
-import { useChatbot } from "@context/ChatbotContext";
 import { Alert } from "react-native";
 
 export default function useTabLayout() {
@@ -17,21 +16,23 @@ export default function useTabLayout() {
   const [showVoiceModal, setShowVoiceModal] = useState(false);
   const [aiResponse, setAiResponse] = useState(null);
 
-  // Estado para mostrar el chatbot y consulta pendiente
-  const {
-    showChatBot,
-    setShowChatBot,
-    openChatBot,
-    closeChatBot,
-    pendingChatQuery,
-    setPendingChatQuery,
-    pendingChatResponse,
-    setPendingChatResponse,
-  } = useChatbot();
+  // Chatbot store subscriptions
+  const showChatBot = useChatbotStore(s => s.showChatBot);
+  const setShowChatBot = useChatbotStore(s => s.setShowChatBot);
+  const openChatBot = useChatbotStore(s => s.openChatBot);
+  const closeChatBot = useChatbotStore(s => s.closeChatBot);
+  const pendingChatQuery = useChatbotStore(s => s.pendingChatQuery);
+  const setPendingChatQuery = useChatbotStore(s => s.setPendingChatQuery);
+  const pendingChatResponse = useChatbotStore(s => s.pendingChatResponse);
+  const setPendingChatResponse = useChatbotStore(s => s.setPendingChatResponse);
+
+  // Places store subscriptions
+  const setSelectedPlace = usePlacesStore(s => s.setSelectedPlace);
+  const setShowPlaceInfo = usePlacesStore(s => s.setShowPlaceInfo);
+  const setShowRoute = usePlacesStore(s => s.setShowRoute);
 
   // Voice recognition hooks
   const { location } = useLocation();
-  const { setSelectedPlace, setShowPlaceInfo, setShowRoute } = usePlaces();
   const { isListening, transcription, error, startListening, resetState } =
     useSpeechToText();
 

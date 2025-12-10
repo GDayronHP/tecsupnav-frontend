@@ -42,7 +42,7 @@ export default function ProfileHeaderContainer({ user }: ProfileHeaderContainerP
             </View>
 
             {/* Stats */}
-            <StatsContainer />
+            {/* <StatsContainer /> */}
 
         </View>
     )

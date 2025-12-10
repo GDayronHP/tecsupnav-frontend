@@ -13,7 +13,7 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import Animated, { useAnimatedStyle } from 'react-native-reanimated';
 import { usePerformantAnimation } from '../../../shared/hooks/usePerformantAnimation';
-import { useAppSettings } from "@context/AppSettingsContext";
+import { useSettingsStore } from "@/stores";
 import Backdrop from "@components/Backdrop";
 
 const emergencyContacts = [
@@ -37,7 +37,10 @@ const emergencyContacts = [
 const EmergencyContactsModal = ({ visible, onClose }) => {
   // Hook de animación que respeta el modo de rendimiento
   const { animatedValue: overlayOpacity, animateWithTiming: animateOverlayOpacity } = usePerformantAnimation(0);
-  const { settings } = useAppSettings();
+  
+  // Selective subscription - only get performanceMode
+  const performanceMode = useSettingsStore(s => s.performanceMode);
+  const settings = { performanceMode };
 
   // Estilo animado para el overlay
   const overlayAnimatedStyle = useAnimatedStyle(() => ({

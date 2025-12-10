@@ -1,8 +1,8 @@
 import { useSharedValue, withSpring, withTiming, WithSpringConfig, WithTimingConfig, runOnJS } from 'react-native-reanimated';
-import { useAppSettings } from '../context/AppSettingsContext';
+import { useSettingsStore } from '@/stores/settingsStore';
 
 export const usePerformantAnimation = (initialValue: number = 0) => {
-  const { isPerformanceModeEnabled } = useAppSettings();
+  const { performanceMode: isPerformanceModeEnabled } = useSettingsStore();
   const animatedValue = useSharedValue(initialValue);
 
   const animateWithSpring = (
@@ -86,7 +86,7 @@ export const usePerformantAnimation = (initialValue: number = 0) => {
 
 // Hook para botones con efecto de escala
 export const useButtonScale = () => {
-  const { isPerformanceModeEnabled } = useAppSettings();
+  const { performanceMode: isPerformanceModeEnabled } = useSettingsStore();
   const scale = useSharedValue(1);
 
   const scaleDown = () => {

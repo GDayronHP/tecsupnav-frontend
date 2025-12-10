@@ -1,15 +1,14 @@
 import { useCallback, useState } from 'react';
 
-import { usePlaces } from '@context/PlacesContext';
+import { usePlacesStore } from '@/stores';
 
 export function useModal() {
 
     const [showEmergencyModal, setShowEmergencyModal] = useState(false);
 
-    const {
-        setSelectedPlace,
-        setShowPlaceInfo
-    } = usePlaces();
+    // Selective subscriptions for actions only
+    const setSelectedPlace = usePlacesStore(s => s.setSelectedPlace);
+    const setShowPlaceInfo = usePlacesStore(s => s.setShowPlaceInfo);
 
     const closeEmergencyModal = useCallback(() => setShowEmergencyModal(false), []);
     const closePlaceInfoCard = useCallback(() => {

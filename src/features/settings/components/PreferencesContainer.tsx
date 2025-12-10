@@ -2,15 +2,25 @@ import { View, Text } from 'react-native'
 import React from 'react'
 import { Ionicons } from '@expo/vector-icons';
 
-import { useAppSettings } from '@context/index';
+import { useSettingsStore } from '@/stores';
 import PreferencesElement from './PreferencesElement';
 
 export default function PreferencesContainer() {
     
-    const { settings, updateSetting } = useAppSettings();
+    // Selective subscriptions
+    const performanceMode = useSettingsStore(s => s.performanceMode);
+    const notifications = useSettingsStore(s => s.notifications);
+    const darkMode = useSettingsStore(s => s.darkMode);
+    const togglePerformanceMode = useSettingsStore(s => s.togglePerformanceMode);
+    const toggleNotifications = useSettingsStore(s => s.toggleNotifications);
+    const toggleDarkMode = useSettingsStore(s => s.toggleDarkMode);
+    
+    const settings = { performanceMode, notifications, darkMode };
 
     const togglePreference = async (key: keyof typeof settings) => {
-        updateSetting(key, !settings[key]);
+        if (key === 'performanceMode') togglePerformanceMode();
+        else if (key === 'notifications') toggleNotifications();
+        else if (key === 'darkMode') toggleDarkMode();
     };
 
     return (

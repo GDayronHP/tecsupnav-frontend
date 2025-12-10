@@ -6,7 +6,7 @@ import { Dimensions } from "react-native";
 import { usePerformantAnimation } from "@hooks/usePerformantAnimation";
 import { useLocation } from "@hooks/useLocation";
 import { useAiAssistantService } from "../services/aiAssistantService";
-import { useChatbot as useChatbotContext } from "@context/ChatbotContext";
+import { useChatbotStore, usePlacesStore } from "@/stores";
 import { useVoiceRecognition } from "@context/VoiceRecognitionContext";
 
 import { useAnimatedStyle } from "react-native-reanimated";
@@ -14,7 +14,6 @@ import { AiAssistantServiceResponseV1 } from "@types/response/aiAssistant_respon
 import { Alert, Keyboard, Platform } from "react-native";
 import { Place } from "@types/place";
 import { Option } from "@types/aiAssistant";
-import { usePlaces } from "@context/PlacesContext";
 import { Message } from "@types/message";
 import usePlaceNavigation from "./usePlaceNavigation";
 
@@ -36,7 +35,11 @@ export default function useChatbot({
   onNavigate,
   onClose,
 }: ChatbotParams) {
-  const { pendingChatResponse, setPendingChatResponse } = useChatbotContext();
+  // Zustand store subscriptions
+  const pendingChatResponse = useChatbotStore(s => s.pendingChatResponse);
+  const setPendingChatResponse = useChatbotStore(s => s.setPendingChatResponse);
+  const setSelectedPlace = usePlacesStore(s => s.setSelectedPlace);
+  
   const { forceStopActiveInstance } = useVoiceRecognition();
   
   const [messages, setMessages] = useState<Message[]>([
@@ -48,7 +51,7 @@ export default function useChatbot({
     },
     {
       id: 2,
-      text: "💡 **Consejo:** Para mejores resultados, inicia tus consultas con palabras como:\n\n🔍 **Buscar** - laboratorio de química\n📍 **Encontrar** - aula A1\n🚶 **Ir a** - biblioteca\n🗺️ **Mostrar ruta** - cafetería\n❓ **Dónde está** - el baño más cercano\n\nTambién puedes usar las preguntas frecuentes de abajo 👇",
+      text: "💡 Consejo: Para mejores resultados, inicia tus consultas con palabras como:\n\n**Buscar** - laboratorio de química\n**Encontrar** - aula A1\n**Ir a** - biblioteca\n**Mostrar ruta** - cafetería\n**Dónde está** - el baño más cercano\n\nTambién puedes usar las preguntas frecuentes de abajo",
       isBot: true,
       timestamp: new Date(),
     },
@@ -66,7 +69,6 @@ export default function useChatbot({
     usePerformantAnimation(CHATBOT_HEIGHT);
   const { animateWithTiming: animateOverlayOpacity } =
     usePerformantAnimation(0);
-  const { setSelectedPlace } = usePlaces();
 
   const slideAnimatedStyle = useAnimatedStyle(() => ({
     transform: [{ translateY: slideAnim.value }],
@@ -74,7 +76,7 @@ export default function useChatbot({
 
   const frequentQuestions = [
     "¿Dónde está el Lab. de Electrónica?",
-    "Llévame a la Biblioteca",
+    "Buscar biblioteca",
     "Buscar servicios higiénicos",
     "Buscar Aula A1",
     "Mostrar ruta a Cafetería",

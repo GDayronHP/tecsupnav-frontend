@@ -3,7 +3,7 @@ import { View, TouchableOpacity, Alert} from 'react-native';
 import { router } from 'expo-router';
 import Animated, { useAnimatedStyle } from 'react-native-reanimated';
 import { usePerformantAnimation, useButtonScale } from '../../../shared/hooks/usePerformantAnimation';
-import { useAppSettings } from '../../../shared/context/AppSettingsContext';
+import { useSettingsStore } from '@/stores';
 
 import SettingsModalBody from './SettingsModalBody';
 import SettingsModalHeader from './SettingsModalHeader';
@@ -19,8 +19,23 @@ interface SettingsModalProps {
 const MODAL_HEIGHT = 400; 
 
 export default function SettingsModal({ visible, onClose }: SettingsModalProps) {
-  const { settings, updateSetting } = useAppSettings();
+  // Selective subscriptions
+  const performanceMode = useSettingsStore(s => s.performanceMode);
+  const notifications = useSettingsStore(s => s.notifications);
+  const darkMode = useSettingsStore(s => s.darkMode);
+  const togglePerformanceMode = useSettingsStore(s => s.togglePerformanceMode);
+  const toggleNotifications = useSettingsStore(s => s.toggleNotifications);
+  const toggleDarkMode = useSettingsStore(s => s.toggleDarkMode);
+  
   const [shouldRender, setShouldRender] = useState(false);
+  
+  // Create settings object to maintain compatibility with existing components
+  const settings = { performanceMode, notifications, darkMode };
+  const updateSetting = (key: string, value: boolean) => {
+    if (key === 'performanceMode') togglePerformanceMode();
+    else if (key === 'notifications') toggleNotifications();
+    else if (key === 'darkMode') toggleDarkMode();
+  };
 
   const { animatedValue: overlayOpacity, animateWithTiming: animateOpacity } = usePerformantAnimation(0);
   const { animatedValue: translateY, animateWithTiming: animateTranslateY } = usePerformantAnimation(MODAL_HEIGHT);

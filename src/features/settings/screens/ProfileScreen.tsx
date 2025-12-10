@@ -82,7 +82,7 @@ export default function ProfileScreen() {
                     {/* <Achievements /> */}
 
                     {/* Recent Locations */}
-                    <RecentLocationsContainer />
+                    {/* <RecentLocationsContainer /> */}
 
                     {/* Preferences */}
                     <PreferencesContainer />
